@@ -5411,7 +5411,7 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\vGetFileMeta\x12\x1c.agent.v1.GetFileMetaRequest\x1a\x1d.agent.v1.GetFileMetaResponse\x12S\n" +
 	"\x0eListWorksheets\x12\x1f.agent.v1.ListWorksheetsRequest\x1a .agent.v1.ListWorksheetsResponse\x12V\n" +
 	"\x0fDecideWorksheet\x12 .agent.v1.DecideWorksheetRequest\x1a!.agent.v1.DecideWorksheetResponse\x12S\n" +
-	"\x0eGetZergxConfig\x12\x1f.agent.v1.GetZergxConfigRequest\x1a .agent.v1.GetZergxConfigResponseBOZMforgejo.develop.10.199.64.20.nip.io/abc-protocol/agent-proto/agent/v1;agentv1b\x06proto3"
+	"\x0eGetZergxConfig\x12\x1f.agent.v1.GetZergxConfigRequest\x1a .agent.v1.GetZergxConfigResponseB2Z0github.com/abcp-sdk/agent-proto/agent/v1;agentv1b\x06proto3"
 
 var (
 	file_agent_v1_agent_proto_rawDescOnce sync.Once

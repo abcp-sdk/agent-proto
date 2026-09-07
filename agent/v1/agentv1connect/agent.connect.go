@@ -11,7 +11,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "forgejo.develop.10.199.64.20.nip.io/abc-protocol/agent-proto/agent/v1"
+	v1 "github.com/abcp-sdk/agent-proto/agent/v1"
 	http "net/http"
 	strings "strings"
 )

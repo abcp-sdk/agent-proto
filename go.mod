@@ -1,4 +1,4 @@
-module forgejo.develop.10.199.64.20.nip.io/abc-protocol/agent-proto
+module github.com/abcp-sdk/agent-proto
 
 go 1.26
 
