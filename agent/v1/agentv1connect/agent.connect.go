@@ -11,7 +11,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "forgejo.develop.10.199.64.20.nip.io/abc-protocol/agent-proto/agent/v1"
+	v1 "github.com/abcp-sdk/agent-proto/agent/v1"
 	http "net/http"
 	strings "strings"
 )
@@ -54,6 +54,9 @@ const (
 	AgentServiceListMessagesProcedure = "/agent.v1.AgentService/ListMessages"
 	// AgentServicePromptProcedure is the fully-qualified name of the AgentService's Prompt RPC.
 	AgentServicePromptProcedure = "/agent.v1.AgentService/Prompt"
+	// AgentServiceWatchSessionProcedure is the fully-qualified name of the AgentService's WatchSession
+	// RPC.
+	AgentServiceWatchSessionProcedure = "/agent.v1.AgentService/WatchSession"
 	// AgentServiceForkProcedure is the fully-qualified name of the AgentService's Fork RPC.
 	AgentServiceForkProcedure = "/agent.v1.AgentService/Fork"
 	// AgentServiceRenameProcedure is the fully-qualified name of the AgentService's Rename RPC.
@@ -146,6 +149,7 @@ type AgentServiceClient interface {
 	DeleteSession(context.Context, *connect.Request[v1.DeleteSessionRequest]) (*connect.Response[v1.DeleteSessionResponse], error)
 	ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error)
 	Prompt(context.Context, *connect.Request[v1.PromptRequest]) (*connect.ServerStreamForClient[v1.PromptResponse], error)
+	WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest]) (*connect.ServerStreamForClient[v1.WatchSessionResponse], error)
 	Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error)
 	Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error)
 	SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error)
@@ -231,6 +235,12 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AgentServicePromptProcedure,
 			connect.WithSchema(agentServiceMethods.ByName("Prompt")),
+			connect.WithClientOptions(opts...),
+		),
+		watchSession: connect.NewClient[v1.WatchSessionRequest, v1.WatchSessionResponse](
+			httpClient,
+			baseURL+AgentServiceWatchSessionProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("WatchSession")),
 			connect.WithClientOptions(opts...),
 		),
 		fork: connect.NewClient[v1.ForkRequest, v1.ForkResponse](
@@ -437,6 +447,7 @@ type agentServiceClient struct {
 	deleteSession        *connect.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
 	listMessages         *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
 	prompt               *connect.Client[v1.PromptRequest, v1.PromptResponse]
+	watchSession         *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
 	fork                 *connect.Client[v1.ForkRequest, v1.ForkResponse]
 	rename               *connect.Client[v1.RenameRequest, v1.RenameResponse]
 	setModel             *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
@@ -504,6 +515,11 @@ func (c *agentServiceClient) ListMessages(ctx context.Context, req *connect.Requ
 // Prompt calls agent.v1.AgentService.Prompt.
 func (c *agentServiceClient) Prompt(ctx context.Context, req *connect.Request[v1.PromptRequest]) (*connect.ServerStreamForClient[v1.PromptResponse], error) {
 	return c.prompt.CallServerStream(ctx, req)
+}
+
+// WatchSession calls agent.v1.AgentService.WatchSession.
+func (c *agentServiceClient) WatchSession(ctx context.Context, req *connect.Request[v1.WatchSessionRequest]) (*connect.ServerStreamForClient[v1.WatchSessionResponse], error) {
+	return c.watchSession.CallServerStream(ctx, req)
 }
 
 // Fork calls agent.v1.AgentService.Fork.
@@ -675,6 +691,7 @@ type AgentServiceHandler interface {
 	DeleteSession(context.Context, *connect.Request[v1.DeleteSessionRequest]) (*connect.Response[v1.DeleteSessionResponse], error)
 	ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error)
 	Prompt(context.Context, *connect.Request[v1.PromptRequest], *connect.ServerStream[v1.PromptResponse]) error
+	WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest], *connect.ServerStream[v1.WatchSessionResponse]) error
 	Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error)
 	Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error)
 	SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error)
@@ -756,6 +773,12 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		AgentServicePromptProcedure,
 		svc.Prompt,
 		connect.WithSchema(agentServiceMethods.ByName("Prompt")),
+		connect.WithHandlerOptions(opts...),
+	)
+	agentServiceWatchSessionHandler := connect.NewServerStreamHandler(
+		AgentServiceWatchSessionProcedure,
+		svc.WatchSession,
+		connect.WithSchema(agentServiceMethods.ByName("WatchSession")),
 		connect.WithHandlerOptions(opts...),
 	)
 	agentServiceForkHandler := connect.NewUnaryHandler(
@@ -966,6 +989,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceListMessagesHandler.ServeHTTP(w, r)
 		case AgentServicePromptProcedure:
 			agentServicePromptHandler.ServeHTTP(w, r)
+		case AgentServiceWatchSessionProcedure:
+			agentServiceWatchSessionHandler.ServeHTTP(w, r)
 		case AgentServiceForkProcedure:
 			agentServiceForkHandler.ServeHTTP(w, r)
 		case AgentServiceRenameProcedure:
@@ -1065,6 +1090,10 @@ func (UnimplementedAgentServiceHandler) ListMessages(context.Context, *connect.R
 
 func (UnimplementedAgentServiceHandler) Prompt(context.Context, *connect.Request[v1.PromptRequest], *connect.ServerStream[v1.PromptResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Prompt is not implemented"))
+}
+
+func (UnimplementedAgentServiceHandler) WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest], *connect.ServerStream[v1.WatchSessionResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.WatchSession is not implemented"))
 }
 
 func (UnimplementedAgentServiceHandler) Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error) {
