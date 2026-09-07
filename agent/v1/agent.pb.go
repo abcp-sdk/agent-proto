@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: agent/v1/agent.proto
 
-// Agent API: the zergx session backend (formerly the Hono/zod-openapi
+// Agent API: the shared abc session backend (formerly the Hono/zod-openapi
 // surface under /api/v1). The single source of truth for the agent contract.
 // Server: agent (TypeScript). Clients: easylab gateway, ext servers, Flutter.
 
@@ -4962,26 +4962,26 @@ func (x *DecideWorksheetResponse) GetOk() bool {
 	return false
 }
 
-type GetZergxConfigRequest struct {
+type GetAgentConfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetZergxConfigRequest) Reset() {
-	*x = GetZergxConfigRequest{}
+func (x *GetAgentConfigRequest) Reset() {
+	*x = GetAgentConfigRequest{}
 	mi := &file_agent_v1_agent_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetZergxConfigRequest) String() string {
+func (x *GetAgentConfigRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetZergxConfigRequest) ProtoMessage() {}
+func (*GetAgentConfigRequest) ProtoMessage() {}
 
-func (x *GetZergxConfigRequest) ProtoReflect() protoreflect.Message {
+func (x *GetAgentConfigRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_agent_v1_agent_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4993,32 +4993,32 @@ func (x *GetZergxConfigRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetZergxConfigRequest.ProtoReflect.Descriptor instead.
-func (*GetZergxConfigRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetAgentConfigRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentConfigRequest) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{90}
 }
 
-type GetZergxConfigResponse struct {
+type GetAgentConfigResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Config        *structpb.Struct       `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetZergxConfigResponse) Reset() {
-	*x = GetZergxConfigResponse{}
+func (x *GetAgentConfigResponse) Reset() {
+	*x = GetAgentConfigResponse{}
 	mi := &file_agent_v1_agent_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetZergxConfigResponse) String() string {
+func (x *GetAgentConfigResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetZergxConfigResponse) ProtoMessage() {}
+func (*GetAgentConfigResponse) ProtoMessage() {}
 
-func (x *GetZergxConfigResponse) ProtoReflect() protoreflect.Message {
+func (x *GetAgentConfigResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_agent_v1_agent_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -5030,12 +5030,12 @@ func (x *GetZergxConfigResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetZergxConfigResponse.ProtoReflect.Descriptor instead.
-func (*GetZergxConfigResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetAgentConfigResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentConfigResponse) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{91}
 }
 
-func (x *GetZergxConfigResponse) GetConfig() *structpb.Struct {
+func (x *GetAgentConfigResponse) GetConfig() *structpb.Struct {
 	if x != nil {
 		return x.Config
 	}
@@ -5473,8 +5473,8 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\bdecision\x18\x03 \x01(\tR\bdecision\")\n" +
 	"\x17DecideWorksheetResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\"\x17\n" +
-	"\x15GetZergxConfigRequest\"I\n" +
-	"\x16GetZergxConfigResponse\x12/\n" +
+	"\x15GetAgentConfigRequest\"I\n" +
+	"\x16GetAgentConfigResponse\x12/\n" +
 	"\x06config\x18\x01 \x01(\v2\x17.google.protobuf.StructR\x06config\"\x0f\n" +
 	"\rHealthRequest\"4\n" +
 	"\x0eHealthResponse\x12\x0e\n" +
@@ -5524,7 +5524,7 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\vGetFileMeta\x12\x1c.agent.v1.GetFileMetaRequest\x1a\x1d.agent.v1.GetFileMetaResponse\x12S\n" +
 	"\x0eListWorksheets\x12\x1f.agent.v1.ListWorksheetsRequest\x1a .agent.v1.ListWorksheetsResponse\x12V\n" +
 	"\x0fDecideWorksheet\x12 .agent.v1.DecideWorksheetRequest\x1a!.agent.v1.DecideWorksheetResponse\x12S\n" +
-	"\x0eGetZergxConfig\x12\x1f.agent.v1.GetZergxConfigRequest\x1a .agent.v1.GetZergxConfigResponseB2Z0github.com/abcp-sdk/agent-proto/agent/v1;agentv1b\x06proto3"
+	"\x0eGetAgentConfig\x12\x1f.agent.v1.GetAgentConfigRequest\x1a .agent.v1.GetAgentConfigResponseB2Z0github.com/abcp-sdk/agent-proto/agent/v1;agentv1b\x06proto3"
 
 var (
 	file_agent_v1_agent_proto_rawDescOnce sync.Once
@@ -5630,8 +5630,8 @@ var file_agent_v1_agent_proto_goTypes = []any{
 	(*ListWorksheetsResponse)(nil),       // 87: agent.v1.ListWorksheetsResponse
 	(*DecideWorksheetRequest)(nil),       // 88: agent.v1.DecideWorksheetRequest
 	(*DecideWorksheetResponse)(nil),      // 89: agent.v1.DecideWorksheetResponse
-	(*GetZergxConfigRequest)(nil),        // 90: agent.v1.GetZergxConfigRequest
-	(*GetZergxConfigResponse)(nil),       // 91: agent.v1.GetZergxConfigResponse
+	(*GetAgentConfigRequest)(nil),        // 90: agent.v1.GetAgentConfigRequest
+	(*GetAgentConfigResponse)(nil),       // 91: agent.v1.GetAgentConfigResponse
 	(*HealthRequest)(nil),                // 92: agent.v1.HealthRequest
 	(*HealthResponse)(nil),               // 93: agent.v1.HealthResponse
 	nil,                                  // 94: agent.v1.Provider.HeadersEntry
@@ -5675,7 +5675,7 @@ var file_agent_v1_agent_proto_depIdxs = []int32{
 	100, // 29: agent.v1.SetExtensionConfigRequest.value:type_name -> google.protobuf.Value
 	14,  // 30: agent.v1.UploadFileRequest.file:type_name -> agent.v1.FileRef
 	4,   // 31: agent.v1.ListWorksheetsResponse.worksheets:type_name -> agent.v1.Worksheet
-	99,  // 32: agent.v1.GetZergxConfigResponse.config:type_name -> google.protobuf.Struct
+	99,  // 32: agent.v1.GetAgentConfigResponse.config:type_name -> google.protobuf.Struct
 	100, // 33: agent.v1.ToolConfig.ValuesEntry.value:type_name -> google.protobuf.Value
 	48,  // 34: agent.v1.ListProvidersCatalogResponse.ProvidersEntry.value:type_name -> agent.v1.CatalogProvider
 	100, // 35: agent.v1.CatalogProvider.ModelsEntry.value:type_name -> google.protobuf.Value
@@ -5718,7 +5718,7 @@ var file_agent_v1_agent_proto_depIdxs = []int32{
 	84,  // 72: agent.v1.AgentService.GetFileMeta:input_type -> agent.v1.GetFileMetaRequest
 	86,  // 73: agent.v1.AgentService.ListWorksheets:input_type -> agent.v1.ListWorksheetsRequest
 	88,  // 74: agent.v1.AgentService.DecideWorksheet:input_type -> agent.v1.DecideWorksheetRequest
-	90,  // 75: agent.v1.AgentService.GetZergxConfig:input_type -> agent.v1.GetZergxConfigRequest
+	90,  // 75: agent.v1.AgentService.GetAgentConfig:input_type -> agent.v1.GetAgentConfigRequest
 	93,  // 76: agent.v1.AgentService.Health:output_type -> agent.v1.HealthResponse
 	16,  // 77: agent.v1.AgentService.ListSessions:output_type -> agent.v1.ListSessionsResponse
 	18,  // 78: agent.v1.AgentService.CreateSession:output_type -> agent.v1.CreateSessionResponse
@@ -5758,7 +5758,7 @@ var file_agent_v1_agent_proto_depIdxs = []int32{
 	85,  // 112: agent.v1.AgentService.GetFileMeta:output_type -> agent.v1.GetFileMetaResponse
 	87,  // 113: agent.v1.AgentService.ListWorksheets:output_type -> agent.v1.ListWorksheetsResponse
 	89,  // 114: agent.v1.AgentService.DecideWorksheet:output_type -> agent.v1.DecideWorksheetResponse
-	91,  // 115: agent.v1.AgentService.GetZergxConfig:output_type -> agent.v1.GetZergxConfigResponse
+	91,  // 115: agent.v1.AgentService.GetAgentConfig:output_type -> agent.v1.GetAgentConfigResponse
 	76,  // [76:116] is the sub-list for method output_type
 	36,  // [36:76] is the sub-list for method input_type
 	36,  // [36:36] is the sub-list for extension type_name

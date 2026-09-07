@@ -2,7 +2,7 @@
 //
 // Source: agent/v1/agent.proto
 
-// Agent API: the zergx session backend (formerly the Hono/zod-openapi
+// Agent API: the shared abc session backend (formerly the Hono/zod-openapi
 // surface under /api/v1). The single source of truth for the agent contract.
 // Server: agent (TypeScript). Clients: easylab gateway, ext servers, Flutter.
 package agentv1connect
@@ -135,9 +135,9 @@ const (
 	// AgentServiceDecideWorksheetProcedure is the fully-qualified name of the AgentService's
 	// DecideWorksheet RPC.
 	AgentServiceDecideWorksheetProcedure = "/agent.v1.AgentService/DecideWorksheet"
-	// AgentServiceGetZergxConfigProcedure is the fully-qualified name of the AgentService's
-	// GetZergxConfig RPC.
-	AgentServiceGetZergxConfigProcedure = "/agent.v1.AgentService/GetZergxConfig"
+	// AgentServiceGetAgentConfigProcedure is the fully-qualified name of the AgentService's
+	// GetAgentConfig RPC.
+	AgentServiceGetAgentConfigProcedure = "/agent.v1.AgentService/GetAgentConfig"
 )
 
 // AgentServiceClient is a client for the agent.v1.AgentService service.
@@ -181,7 +181,7 @@ type AgentServiceClient interface {
 	GetFileMeta(context.Context, *connect.Request[v1.GetFileMetaRequest]) (*connect.Response[v1.GetFileMetaResponse], error)
 	ListWorksheets(context.Context, *connect.Request[v1.ListWorksheetsRequest]) (*connect.Response[v1.ListWorksheetsResponse], error)
 	DecideWorksheet(context.Context, *connect.Request[v1.DecideWorksheetRequest]) (*connect.Response[v1.DecideWorksheetResponse], error)
-	GetZergxConfig(context.Context, *connect.Request[v1.GetZergxConfigRequest]) (*connect.Response[v1.GetZergxConfigResponse], error)
+	GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error)
 }
 
 // NewAgentServiceClient constructs a client for the agent.v1.AgentService service. By default, it
@@ -429,10 +429,10 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(agentServiceMethods.ByName("DecideWorksheet")),
 			connect.WithClientOptions(opts...),
 		),
-		getZergxConfig: connect.NewClient[v1.GetZergxConfigRequest, v1.GetZergxConfigResponse](
+		getAgentConfig: connect.NewClient[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse](
 			httpClient,
-			baseURL+AgentServiceGetZergxConfigProcedure,
-			connect.WithSchema(agentServiceMethods.ByName("GetZergxConfig")),
+			baseURL+AgentServiceGetAgentConfigProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("GetAgentConfig")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -479,7 +479,7 @@ type agentServiceClient struct {
 	getFileMeta          *connect.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
 	listWorksheets       *connect.Client[v1.ListWorksheetsRequest, v1.ListWorksheetsResponse]
 	decideWorksheet      *connect.Client[v1.DecideWorksheetRequest, v1.DecideWorksheetResponse]
-	getZergxConfig       *connect.Client[v1.GetZergxConfigRequest, v1.GetZergxConfigResponse]
+	getAgentConfig       *connect.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
 }
 
 // Health calls agent.v1.AgentService.Health.
@@ -677,9 +677,9 @@ func (c *agentServiceClient) DecideWorksheet(ctx context.Context, req *connect.R
 	return c.decideWorksheet.CallUnary(ctx, req)
 }
 
-// GetZergxConfig calls agent.v1.AgentService.GetZergxConfig.
-func (c *agentServiceClient) GetZergxConfig(ctx context.Context, req *connect.Request[v1.GetZergxConfigRequest]) (*connect.Response[v1.GetZergxConfigResponse], error) {
-	return c.getZergxConfig.CallUnary(ctx, req)
+// GetAgentConfig calls agent.v1.AgentService.GetAgentConfig.
+func (c *agentServiceClient) GetAgentConfig(ctx context.Context, req *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error) {
+	return c.getAgentConfig.CallUnary(ctx, req)
 }
 
 // AgentServiceHandler is an implementation of the agent.v1.AgentService service.
@@ -723,7 +723,7 @@ type AgentServiceHandler interface {
 	GetFileMeta(context.Context, *connect.Request[v1.GetFileMetaRequest]) (*connect.Response[v1.GetFileMetaResponse], error)
 	ListWorksheets(context.Context, *connect.Request[v1.ListWorksheetsRequest]) (*connect.Response[v1.ListWorksheetsResponse], error)
 	DecideWorksheet(context.Context, *connect.Request[v1.DecideWorksheetRequest]) (*connect.Response[v1.DecideWorksheetResponse], error)
-	GetZergxConfig(context.Context, *connect.Request[v1.GetZergxConfigRequest]) (*connect.Response[v1.GetZergxConfigResponse], error)
+	GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error)
 }
 
 // NewAgentServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -967,10 +967,10 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(agentServiceMethods.ByName("DecideWorksheet")),
 		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetZergxConfigHandler := connect.NewUnaryHandler(
-		AgentServiceGetZergxConfigProcedure,
-		svc.GetZergxConfig,
-		connect.WithSchema(agentServiceMethods.ByName("GetZergxConfig")),
+	agentServiceGetAgentConfigHandler := connect.NewUnaryHandler(
+		AgentServiceGetAgentConfigProcedure,
+		svc.GetAgentConfig,
+		connect.WithSchema(agentServiceMethods.ByName("GetAgentConfig")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/agent.v1.AgentService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1053,8 +1053,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceListWorksheetsHandler.ServeHTTP(w, r)
 		case AgentServiceDecideWorksheetProcedure:
 			agentServiceDecideWorksheetHandler.ServeHTTP(w, r)
-		case AgentServiceGetZergxConfigProcedure:
-			agentServiceGetZergxConfigHandler.ServeHTTP(w, r)
+		case AgentServiceGetAgentConfigProcedure:
+			agentServiceGetAgentConfigHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -1220,6 +1220,6 @@ func (UnimplementedAgentServiceHandler) DecideWorksheet(context.Context, *connec
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DecideWorksheet is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetZergxConfig(context.Context, *connect.Request[v1.GetZergxConfigRequest]) (*connect.Response[v1.GetZergxConfigResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetZergxConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetAgentConfig is not implemented"))
 }
