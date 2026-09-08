@@ -8,10 +8,10 @@
 package agentv1connect
 
 import (
+	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
 	v1 "github.com/abcp-sdk/agent-proto/agent/v1"
-	connect_go "github.com/bufbuild/connect-go"
 	http "net/http"
 	strings "strings"
 )
@@ -21,7 +21,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect_go.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// AgentServiceName is the fully-qualified name of the AgentService service.
@@ -136,44 +136,44 @@ const (
 
 // AgentServiceClient is a client for the agent.v1.AgentService service.
 type AgentServiceClient interface {
-	Health(context.Context, *connect_go.Request[v1.HealthRequest]) (*connect_go.Response[v1.HealthResponse], error)
-	ListSessions(context.Context, *connect_go.Request[v1.ListSessionsRequest]) (*connect_go.Response[v1.ListSessionsResponse], error)
-	CreateSession(context.Context, *connect_go.Request[v1.CreateSessionRequest]) (*connect_go.Response[v1.CreateSessionResponse], error)
-	GetSession(context.Context, *connect_go.Request[v1.GetSessionRequest]) (*connect_go.Response[v1.GetSessionResponse], error)
-	DeleteSession(context.Context, *connect_go.Request[v1.DeleteSessionRequest]) (*connect_go.Response[v1.DeleteSessionResponse], error)
-	ListMessages(context.Context, *connect_go.Request[v1.ListMessagesRequest]) (*connect_go.Response[v1.ListMessagesResponse], error)
-	Prompt(context.Context, *connect_go.Request[v1.PromptRequest]) (*connect_go.ServerStreamForClient[v1.PromptResponse], error)
-	WatchSession(context.Context, *connect_go.Request[v1.WatchSessionRequest]) (*connect_go.ServerStreamForClient[v1.WatchSessionResponse], error)
-	Fork(context.Context, *connect_go.Request[v1.ForkRequest]) (*connect_go.Response[v1.ForkResponse], error)
-	Rename(context.Context, *connect_go.Request[v1.RenameRequest]) (*connect_go.Response[v1.RenameResponse], error)
-	SetModel(context.Context, *connect_go.Request[v1.SetModelRequest]) (*connect_go.Response[v1.SetModelResponse], error)
-	Undo(context.Context, *connect_go.Request[v1.UndoRequest]) (*connect_go.Response[v1.UndoResponse], error)
-	State(context.Context, *connect_go.Request[v1.StateRequest]) (*connect_go.Response[v1.StateResponse], error)
-	Mailbox(context.Context, *connect_go.Request[v1.MailboxRequest]) (*connect_go.Response[v1.MailboxResponse], error)
-	UpdateSettings(context.Context, *connect_go.Request[v1.UpdateSettingsRequest]) (*connect_go.Response[v1.UpdateSettingsResponse], error)
-	Interrupt(context.Context, *connect_go.Request[v1.InterruptRequest]) (*connect_go.Response[v1.InterruptResponse], error)
-	Compact(context.Context, *connect_go.Request[v1.CompactRequest]) (*connect_go.Response[v1.CompactResponse], error)
-	ListProviders(context.Context, *connect_go.Request[v1.ListProvidersRequest]) (*connect_go.Response[v1.ListProvidersResponse], error)
-	ListProvidersCatalog(context.Context, *connect_go.Request[v1.ListProvidersCatalogRequest]) (*connect_go.Response[v1.ListProvidersCatalogResponse], error)
-	RegisterProvider(context.Context, *connect_go.Request[v1.RegisterProviderRequest]) (*connect_go.Response[v1.RegisterProviderResponse], error)
-	DeleteProvider(context.Context, *connect_go.Request[v1.DeleteProviderRequest]) (*connect_go.Response[v1.DeleteProviderResponse], error)
-	TestProvider(context.Context, *connect_go.Request[v1.TestProviderRequest]) (*connect_go.Response[v1.TestProviderResponse], error)
-	ListModels(context.Context, *connect_go.Request[v1.ListModelsRequest]) (*connect_go.Response[v1.ListModelsResponse], error)
-	ListPresets(context.Context, *connect_go.Request[v1.ListPresetsRequest]) (*connect_go.Response[v1.ListPresetsResponse], error)
-	UpsertPreset(context.Context, *connect_go.Request[v1.UpsertPresetRequest]) (*connect_go.Response[v1.UpsertPresetResponse], error)
-	DeletePreset(context.Context, *connect_go.Request[v1.DeletePresetRequest]) (*connect_go.Response[v1.DeletePresetResponse], error)
-	PreviewPreset(context.Context, *connect_go.Request[v1.PreviewPresetRequest]) (*connect_go.Response[v1.PreviewPresetResponse], error)
-	GetConfig(context.Context, *connect_go.Request[v1.GetConfigRequest]) (*connect_go.Response[v1.GetConfigResponse], error)
-	SetConfig(context.Context, *connect_go.Request[v1.SetConfigRequest]) (*connect_go.Response[v1.SetConfigResponse], error)
-	ListTools(context.Context, *connect_go.Request[v1.ListToolsRequest]) (*connect_go.Response[v1.ListToolsResponse], error)
-	GetToolConfig(context.Context, *connect_go.Request[v1.GetToolConfigRequest]) (*connect_go.Response[v1.GetToolConfigResponse], error)
-	SetToolConfig(context.Context, *connect_go.Request[v1.SetToolConfigRequest]) (*connect_go.Response[v1.SetToolConfigResponse], error)
-	SetExtensionConfig(context.Context, *connect_go.Request[v1.SetExtensionConfigRequest]) (*connect_go.Response[v1.SetExtensionConfigResponse], error)
-	UploadFile(context.Context, *connect_go.Request[v1.UploadFileRequest]) (*connect_go.Response[v1.UploadFileResponse], error)
-	IngestFile(context.Context, *connect_go.Request[v1.IngestFileRequest]) (*connect_go.Response[v1.IngestFileResponse], error)
-	GetFile(context.Context, *connect_go.Request[v1.GetFileRequest]) (*connect_go.Response[v1.GetFileResponse], error)
-	GetFileMeta(context.Context, *connect_go.Request[v1.GetFileMetaRequest]) (*connect_go.Response[v1.GetFileMetaResponse], error)
-	GetAgentConfig(context.Context, *connect_go.Request[v1.GetAgentConfigRequest]) (*connect_go.Response[v1.GetAgentConfigResponse], error)
+	Health(context.Context, *connect.Request[v1.HealthRequest]) (*connect.Response[v1.HealthResponse], error)
+	ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error)
+	CreateSession(context.Context, *connect.Request[v1.CreateSessionRequest]) (*connect.Response[v1.CreateSessionResponse], error)
+	GetSession(context.Context, *connect.Request[v1.GetSessionRequest]) (*connect.Response[v1.GetSessionResponse], error)
+	DeleteSession(context.Context, *connect.Request[v1.DeleteSessionRequest]) (*connect.Response[v1.DeleteSessionResponse], error)
+	ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error)
+	Prompt(context.Context, *connect.Request[v1.PromptRequest]) (*connect.ServerStreamForClient[v1.PromptResponse], error)
+	WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest]) (*connect.ServerStreamForClient[v1.WatchSessionResponse], error)
+	Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error)
+	Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error)
+	SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error)
+	Undo(context.Context, *connect.Request[v1.UndoRequest]) (*connect.Response[v1.UndoResponse], error)
+	State(context.Context, *connect.Request[v1.StateRequest]) (*connect.Response[v1.StateResponse], error)
+	Mailbox(context.Context, *connect.Request[v1.MailboxRequest]) (*connect.Response[v1.MailboxResponse], error)
+	UpdateSettings(context.Context, *connect.Request[v1.UpdateSettingsRequest]) (*connect.Response[v1.UpdateSettingsResponse], error)
+	Interrupt(context.Context, *connect.Request[v1.InterruptRequest]) (*connect.Response[v1.InterruptResponse], error)
+	Compact(context.Context, *connect.Request[v1.CompactRequest]) (*connect.Response[v1.CompactResponse], error)
+	ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error)
+	ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error)
+	RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error)
+	DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error)
+	TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error)
+	ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error)
+	ListPresets(context.Context, *connect.Request[v1.ListPresetsRequest]) (*connect.Response[v1.ListPresetsResponse], error)
+	UpsertPreset(context.Context, *connect.Request[v1.UpsertPresetRequest]) (*connect.Response[v1.UpsertPresetResponse], error)
+	DeletePreset(context.Context, *connect.Request[v1.DeletePresetRequest]) (*connect.Response[v1.DeletePresetResponse], error)
+	PreviewPreset(context.Context, *connect.Request[v1.PreviewPresetRequest]) (*connect.Response[v1.PreviewPresetResponse], error)
+	GetConfig(context.Context, *connect.Request[v1.GetConfigRequest]) (*connect.Response[v1.GetConfigResponse], error)
+	SetConfig(context.Context, *connect.Request[v1.SetConfigRequest]) (*connect.Response[v1.SetConfigResponse], error)
+	ListTools(context.Context, *connect.Request[v1.ListToolsRequest]) (*connect.Response[v1.ListToolsResponse], error)
+	GetToolConfig(context.Context, *connect.Request[v1.GetToolConfigRequest]) (*connect.Response[v1.GetToolConfigResponse], error)
+	SetToolConfig(context.Context, *connect.Request[v1.SetToolConfigRequest]) (*connect.Response[v1.SetToolConfigResponse], error)
+	SetExtensionConfig(context.Context, *connect.Request[v1.SetExtensionConfigRequest]) (*connect.Response[v1.SetExtensionConfigResponse], error)
+	UploadFile(context.Context, *connect.Request[v1.UploadFileRequest]) (*connect.Response[v1.UploadFileResponse], error)
+	IngestFile(context.Context, *connect.Request[v1.IngestFileRequest]) (*connect.Response[v1.IngestFileResponse], error)
+	GetFile(context.Context, *connect.Request[v1.GetFileRequest]) (*connect.Response[v1.GetFileResponse], error)
+	GetFileMeta(context.Context, *connect.Request[v1.GetFileMetaRequest]) (*connect.Response[v1.GetFileMetaResponse], error)
+	GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error)
 }
 
 // NewAgentServiceClient constructs a client for the agent.v1.AgentService service. By default, it
@@ -183,474 +183,513 @@ type AgentServiceClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewAgentServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) AgentServiceClient {
+func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AgentServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	agentServiceMethods := v1.File_agent_v1_agent_proto.Services().ByName("AgentService").Methods()
 	return &agentServiceClient{
-		health: connect_go.NewClient[v1.HealthRequest, v1.HealthResponse](
+		health: connect.NewClient[v1.HealthRequest, v1.HealthResponse](
 			httpClient,
 			baseURL+AgentServiceHealthProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Health")),
+			connect.WithClientOptions(opts...),
 		),
-		listSessions: connect_go.NewClient[v1.ListSessionsRequest, v1.ListSessionsResponse](
+		listSessions: connect.NewClient[v1.ListSessionsRequest, v1.ListSessionsResponse](
 			httpClient,
 			baseURL+AgentServiceListSessionsProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListSessions")),
+			connect.WithClientOptions(opts...),
 		),
-		createSession: connect_go.NewClient[v1.CreateSessionRequest, v1.CreateSessionResponse](
+		createSession: connect.NewClient[v1.CreateSessionRequest, v1.CreateSessionResponse](
 			httpClient,
 			baseURL+AgentServiceCreateSessionProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("CreateSession")),
+			connect.WithClientOptions(opts...),
 		),
-		getSession: connect_go.NewClient[v1.GetSessionRequest, v1.GetSessionResponse](
+		getSession: connect.NewClient[v1.GetSessionRequest, v1.GetSessionResponse](
 			httpClient,
 			baseURL+AgentServiceGetSessionProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("GetSession")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteSession: connect_go.NewClient[v1.DeleteSessionRequest, v1.DeleteSessionResponse](
+		deleteSession: connect.NewClient[v1.DeleteSessionRequest, v1.DeleteSessionResponse](
 			httpClient,
 			baseURL+AgentServiceDeleteSessionProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("DeleteSession")),
+			connect.WithClientOptions(opts...),
 		),
-		listMessages: connect_go.NewClient[v1.ListMessagesRequest, v1.ListMessagesResponse](
+		listMessages: connect.NewClient[v1.ListMessagesRequest, v1.ListMessagesResponse](
 			httpClient,
 			baseURL+AgentServiceListMessagesProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListMessages")),
+			connect.WithClientOptions(opts...),
 		),
-		prompt: connect_go.NewClient[v1.PromptRequest, v1.PromptResponse](
+		prompt: connect.NewClient[v1.PromptRequest, v1.PromptResponse](
 			httpClient,
 			baseURL+AgentServicePromptProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Prompt")),
+			connect.WithClientOptions(opts...),
 		),
-		watchSession: connect_go.NewClient[v1.WatchSessionRequest, v1.WatchSessionResponse](
+		watchSession: connect.NewClient[v1.WatchSessionRequest, v1.WatchSessionResponse](
 			httpClient,
 			baseURL+AgentServiceWatchSessionProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("WatchSession")),
+			connect.WithClientOptions(opts...),
 		),
-		fork: connect_go.NewClient[v1.ForkRequest, v1.ForkResponse](
+		fork: connect.NewClient[v1.ForkRequest, v1.ForkResponse](
 			httpClient,
 			baseURL+AgentServiceForkProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Fork")),
+			connect.WithClientOptions(opts...),
 		),
-		rename: connect_go.NewClient[v1.RenameRequest, v1.RenameResponse](
+		rename: connect.NewClient[v1.RenameRequest, v1.RenameResponse](
 			httpClient,
 			baseURL+AgentServiceRenameProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Rename")),
+			connect.WithClientOptions(opts...),
 		),
-		setModel: connect_go.NewClient[v1.SetModelRequest, v1.SetModelResponse](
+		setModel: connect.NewClient[v1.SetModelRequest, v1.SetModelResponse](
 			httpClient,
 			baseURL+AgentServiceSetModelProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("SetModel")),
+			connect.WithClientOptions(opts...),
 		),
-		undo: connect_go.NewClient[v1.UndoRequest, v1.UndoResponse](
+		undo: connect.NewClient[v1.UndoRequest, v1.UndoResponse](
 			httpClient,
 			baseURL+AgentServiceUndoProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Undo")),
+			connect.WithClientOptions(opts...),
 		),
-		state: connect_go.NewClient[v1.StateRequest, v1.StateResponse](
+		state: connect.NewClient[v1.StateRequest, v1.StateResponse](
 			httpClient,
 			baseURL+AgentServiceStateProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("State")),
+			connect.WithClientOptions(opts...),
 		),
-		mailbox: connect_go.NewClient[v1.MailboxRequest, v1.MailboxResponse](
+		mailbox: connect.NewClient[v1.MailboxRequest, v1.MailboxResponse](
 			httpClient,
 			baseURL+AgentServiceMailboxProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Mailbox")),
+			connect.WithClientOptions(opts...),
 		),
-		updateSettings: connect_go.NewClient[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse](
+		updateSettings: connect.NewClient[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse](
 			httpClient,
 			baseURL+AgentServiceUpdateSettingsProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("UpdateSettings")),
+			connect.WithClientOptions(opts...),
 		),
-		interrupt: connect_go.NewClient[v1.InterruptRequest, v1.InterruptResponse](
+		interrupt: connect.NewClient[v1.InterruptRequest, v1.InterruptResponse](
 			httpClient,
 			baseURL+AgentServiceInterruptProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Interrupt")),
+			connect.WithClientOptions(opts...),
 		),
-		compact: connect_go.NewClient[v1.CompactRequest, v1.CompactResponse](
+		compact: connect.NewClient[v1.CompactRequest, v1.CompactResponse](
 			httpClient,
 			baseURL+AgentServiceCompactProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("Compact")),
+			connect.WithClientOptions(opts...),
 		),
-		listProviders: connect_go.NewClient[v1.ListProvidersRequest, v1.ListProvidersResponse](
+		listProviders: connect.NewClient[v1.ListProvidersRequest, v1.ListProvidersResponse](
 			httpClient,
 			baseURL+AgentServiceListProvidersProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListProviders")),
+			connect.WithClientOptions(opts...),
 		),
-		listProvidersCatalog: connect_go.NewClient[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse](
+		listProvidersCatalog: connect.NewClient[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse](
 			httpClient,
 			baseURL+AgentServiceListProvidersCatalogProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListProvidersCatalog")),
+			connect.WithClientOptions(opts...),
 		),
-		registerProvider: connect_go.NewClient[v1.RegisterProviderRequest, v1.RegisterProviderResponse](
+		registerProvider: connect.NewClient[v1.RegisterProviderRequest, v1.RegisterProviderResponse](
 			httpClient,
 			baseURL+AgentServiceRegisterProviderProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("RegisterProvider")),
+			connect.WithClientOptions(opts...),
 		),
-		deleteProvider: connect_go.NewClient[v1.DeleteProviderRequest, v1.DeleteProviderResponse](
+		deleteProvider: connect.NewClient[v1.DeleteProviderRequest, v1.DeleteProviderResponse](
 			httpClient,
 			baseURL+AgentServiceDeleteProviderProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("DeleteProvider")),
+			connect.WithClientOptions(opts...),
 		),
-		testProvider: connect_go.NewClient[v1.TestProviderRequest, v1.TestProviderResponse](
+		testProvider: connect.NewClient[v1.TestProviderRequest, v1.TestProviderResponse](
 			httpClient,
 			baseURL+AgentServiceTestProviderProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("TestProvider")),
+			connect.WithClientOptions(opts...),
 		),
-		listModels: connect_go.NewClient[v1.ListModelsRequest, v1.ListModelsResponse](
+		listModels: connect.NewClient[v1.ListModelsRequest, v1.ListModelsResponse](
 			httpClient,
 			baseURL+AgentServiceListModelsProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListModels")),
+			connect.WithClientOptions(opts...),
 		),
-		listPresets: connect_go.NewClient[v1.ListPresetsRequest, v1.ListPresetsResponse](
+		listPresets: connect.NewClient[v1.ListPresetsRequest, v1.ListPresetsResponse](
 			httpClient,
 			baseURL+AgentServiceListPresetsProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListPresets")),
+			connect.WithClientOptions(opts...),
 		),
-		upsertPreset: connect_go.NewClient[v1.UpsertPresetRequest, v1.UpsertPresetResponse](
+		upsertPreset: connect.NewClient[v1.UpsertPresetRequest, v1.UpsertPresetResponse](
 			httpClient,
 			baseURL+AgentServiceUpsertPresetProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("UpsertPreset")),
+			connect.WithClientOptions(opts...),
 		),
-		deletePreset: connect_go.NewClient[v1.DeletePresetRequest, v1.DeletePresetResponse](
+		deletePreset: connect.NewClient[v1.DeletePresetRequest, v1.DeletePresetResponse](
 			httpClient,
 			baseURL+AgentServiceDeletePresetProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("DeletePreset")),
+			connect.WithClientOptions(opts...),
 		),
-		previewPreset: connect_go.NewClient[v1.PreviewPresetRequest, v1.PreviewPresetResponse](
+		previewPreset: connect.NewClient[v1.PreviewPresetRequest, v1.PreviewPresetResponse](
 			httpClient,
 			baseURL+AgentServicePreviewPresetProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("PreviewPreset")),
+			connect.WithClientOptions(opts...),
 		),
-		getConfig: connect_go.NewClient[v1.GetConfigRequest, v1.GetConfigResponse](
+		getConfig: connect.NewClient[v1.GetConfigRequest, v1.GetConfigResponse](
 			httpClient,
 			baseURL+AgentServiceGetConfigProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("GetConfig")),
+			connect.WithClientOptions(opts...),
 		),
-		setConfig: connect_go.NewClient[v1.SetConfigRequest, v1.SetConfigResponse](
+		setConfig: connect.NewClient[v1.SetConfigRequest, v1.SetConfigResponse](
 			httpClient,
 			baseURL+AgentServiceSetConfigProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("SetConfig")),
+			connect.WithClientOptions(opts...),
 		),
-		listTools: connect_go.NewClient[v1.ListToolsRequest, v1.ListToolsResponse](
+		listTools: connect.NewClient[v1.ListToolsRequest, v1.ListToolsResponse](
 			httpClient,
 			baseURL+AgentServiceListToolsProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("ListTools")),
+			connect.WithClientOptions(opts...),
 		),
-		getToolConfig: connect_go.NewClient[v1.GetToolConfigRequest, v1.GetToolConfigResponse](
+		getToolConfig: connect.NewClient[v1.GetToolConfigRequest, v1.GetToolConfigResponse](
 			httpClient,
 			baseURL+AgentServiceGetToolConfigProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("GetToolConfig")),
+			connect.WithClientOptions(opts...),
 		),
-		setToolConfig: connect_go.NewClient[v1.SetToolConfigRequest, v1.SetToolConfigResponse](
+		setToolConfig: connect.NewClient[v1.SetToolConfigRequest, v1.SetToolConfigResponse](
 			httpClient,
 			baseURL+AgentServiceSetToolConfigProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("SetToolConfig")),
+			connect.WithClientOptions(opts...),
 		),
-		setExtensionConfig: connect_go.NewClient[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse](
+		setExtensionConfig: connect.NewClient[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse](
 			httpClient,
 			baseURL+AgentServiceSetExtensionConfigProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("SetExtensionConfig")),
+			connect.WithClientOptions(opts...),
 		),
-		uploadFile: connect_go.NewClient[v1.UploadFileRequest, v1.UploadFileResponse](
+		uploadFile: connect.NewClient[v1.UploadFileRequest, v1.UploadFileResponse](
 			httpClient,
 			baseURL+AgentServiceUploadFileProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("UploadFile")),
+			connect.WithClientOptions(opts...),
 		),
-		ingestFile: connect_go.NewClient[v1.IngestFileRequest, v1.IngestFileResponse](
+		ingestFile: connect.NewClient[v1.IngestFileRequest, v1.IngestFileResponse](
 			httpClient,
 			baseURL+AgentServiceIngestFileProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("IngestFile")),
+			connect.WithClientOptions(opts...),
 		),
-		getFile: connect_go.NewClient[v1.GetFileRequest, v1.GetFileResponse](
+		getFile: connect.NewClient[v1.GetFileRequest, v1.GetFileResponse](
 			httpClient,
 			baseURL+AgentServiceGetFileProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("GetFile")),
+			connect.WithClientOptions(opts...),
 		),
-		getFileMeta: connect_go.NewClient[v1.GetFileMetaRequest, v1.GetFileMetaResponse](
+		getFileMeta: connect.NewClient[v1.GetFileMetaRequest, v1.GetFileMetaResponse](
 			httpClient,
 			baseURL+AgentServiceGetFileMetaProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("GetFileMeta")),
+			connect.WithClientOptions(opts...),
 		),
-		getAgentConfig: connect_go.NewClient[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse](
+		getAgentConfig: connect.NewClient[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse](
 			httpClient,
 			baseURL+AgentServiceGetAgentConfigProcedure,
-			opts...,
+			connect.WithSchema(agentServiceMethods.ByName("GetAgentConfig")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
 
 // agentServiceClient implements AgentServiceClient.
 type agentServiceClient struct {
-	health               *connect_go.Client[v1.HealthRequest, v1.HealthResponse]
-	listSessions         *connect_go.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
-	createSession        *connect_go.Client[v1.CreateSessionRequest, v1.CreateSessionResponse]
-	getSession           *connect_go.Client[v1.GetSessionRequest, v1.GetSessionResponse]
-	deleteSession        *connect_go.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
-	listMessages         *connect_go.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
-	prompt               *connect_go.Client[v1.PromptRequest, v1.PromptResponse]
-	watchSession         *connect_go.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
-	fork                 *connect_go.Client[v1.ForkRequest, v1.ForkResponse]
-	rename               *connect_go.Client[v1.RenameRequest, v1.RenameResponse]
-	setModel             *connect_go.Client[v1.SetModelRequest, v1.SetModelResponse]
-	undo                 *connect_go.Client[v1.UndoRequest, v1.UndoResponse]
-	state                *connect_go.Client[v1.StateRequest, v1.StateResponse]
-	mailbox              *connect_go.Client[v1.MailboxRequest, v1.MailboxResponse]
-	updateSettings       *connect_go.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
-	interrupt            *connect_go.Client[v1.InterruptRequest, v1.InterruptResponse]
-	compact              *connect_go.Client[v1.CompactRequest, v1.CompactResponse]
-	listProviders        *connect_go.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
-	listProvidersCatalog *connect_go.Client[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse]
-	registerProvider     *connect_go.Client[v1.RegisterProviderRequest, v1.RegisterProviderResponse]
-	deleteProvider       *connect_go.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
-	testProvider         *connect_go.Client[v1.TestProviderRequest, v1.TestProviderResponse]
-	listModels           *connect_go.Client[v1.ListModelsRequest, v1.ListModelsResponse]
-	listPresets          *connect_go.Client[v1.ListPresetsRequest, v1.ListPresetsResponse]
-	upsertPreset         *connect_go.Client[v1.UpsertPresetRequest, v1.UpsertPresetResponse]
-	deletePreset         *connect_go.Client[v1.DeletePresetRequest, v1.DeletePresetResponse]
-	previewPreset        *connect_go.Client[v1.PreviewPresetRequest, v1.PreviewPresetResponse]
-	getConfig            *connect_go.Client[v1.GetConfigRequest, v1.GetConfigResponse]
-	setConfig            *connect_go.Client[v1.SetConfigRequest, v1.SetConfigResponse]
-	listTools            *connect_go.Client[v1.ListToolsRequest, v1.ListToolsResponse]
-	getToolConfig        *connect_go.Client[v1.GetToolConfigRequest, v1.GetToolConfigResponse]
-	setToolConfig        *connect_go.Client[v1.SetToolConfigRequest, v1.SetToolConfigResponse]
-	setExtensionConfig   *connect_go.Client[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse]
-	uploadFile           *connect_go.Client[v1.UploadFileRequest, v1.UploadFileResponse]
-	ingestFile           *connect_go.Client[v1.IngestFileRequest, v1.IngestFileResponse]
-	getFile              *connect_go.Client[v1.GetFileRequest, v1.GetFileResponse]
-	getFileMeta          *connect_go.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
-	getAgentConfig       *connect_go.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
+	health               *connect.Client[v1.HealthRequest, v1.HealthResponse]
+	listSessions         *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
+	createSession        *connect.Client[v1.CreateSessionRequest, v1.CreateSessionResponse]
+	getSession           *connect.Client[v1.GetSessionRequest, v1.GetSessionResponse]
+	deleteSession        *connect.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
+	listMessages         *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
+	prompt               *connect.Client[v1.PromptRequest, v1.PromptResponse]
+	watchSession         *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
+	fork                 *connect.Client[v1.ForkRequest, v1.ForkResponse]
+	rename               *connect.Client[v1.RenameRequest, v1.RenameResponse]
+	setModel             *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
+	undo                 *connect.Client[v1.UndoRequest, v1.UndoResponse]
+	state                *connect.Client[v1.StateRequest, v1.StateResponse]
+	mailbox              *connect.Client[v1.MailboxRequest, v1.MailboxResponse]
+	updateSettings       *connect.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
+	interrupt            *connect.Client[v1.InterruptRequest, v1.InterruptResponse]
+	compact              *connect.Client[v1.CompactRequest, v1.CompactResponse]
+	listProviders        *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
+	listProvidersCatalog *connect.Client[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse]
+	registerProvider     *connect.Client[v1.RegisterProviderRequest, v1.RegisterProviderResponse]
+	deleteProvider       *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
+	testProvider         *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
+	listModels           *connect.Client[v1.ListModelsRequest, v1.ListModelsResponse]
+	listPresets          *connect.Client[v1.ListPresetsRequest, v1.ListPresetsResponse]
+	upsertPreset         *connect.Client[v1.UpsertPresetRequest, v1.UpsertPresetResponse]
+	deletePreset         *connect.Client[v1.DeletePresetRequest, v1.DeletePresetResponse]
+	previewPreset        *connect.Client[v1.PreviewPresetRequest, v1.PreviewPresetResponse]
+	getConfig            *connect.Client[v1.GetConfigRequest, v1.GetConfigResponse]
+	setConfig            *connect.Client[v1.SetConfigRequest, v1.SetConfigResponse]
+	listTools            *connect.Client[v1.ListToolsRequest, v1.ListToolsResponse]
+	getToolConfig        *connect.Client[v1.GetToolConfigRequest, v1.GetToolConfigResponse]
+	setToolConfig        *connect.Client[v1.SetToolConfigRequest, v1.SetToolConfigResponse]
+	setExtensionConfig   *connect.Client[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse]
+	uploadFile           *connect.Client[v1.UploadFileRequest, v1.UploadFileResponse]
+	ingestFile           *connect.Client[v1.IngestFileRequest, v1.IngestFileResponse]
+	getFile              *connect.Client[v1.GetFileRequest, v1.GetFileResponse]
+	getFileMeta          *connect.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
+	getAgentConfig       *connect.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
 }
 
 // Health calls agent.v1.AgentService.Health.
-func (c *agentServiceClient) Health(ctx context.Context, req *connect_go.Request[v1.HealthRequest]) (*connect_go.Response[v1.HealthResponse], error) {
+func (c *agentServiceClient) Health(ctx context.Context, req *connect.Request[v1.HealthRequest]) (*connect.Response[v1.HealthResponse], error) {
 	return c.health.CallUnary(ctx, req)
 }
 
 // ListSessions calls agent.v1.AgentService.ListSessions.
-func (c *agentServiceClient) ListSessions(ctx context.Context, req *connect_go.Request[v1.ListSessionsRequest]) (*connect_go.Response[v1.ListSessionsResponse], error) {
+func (c *agentServiceClient) ListSessions(ctx context.Context, req *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error) {
 	return c.listSessions.CallUnary(ctx, req)
 }
 
 // CreateSession calls agent.v1.AgentService.CreateSession.
-func (c *agentServiceClient) CreateSession(ctx context.Context, req *connect_go.Request[v1.CreateSessionRequest]) (*connect_go.Response[v1.CreateSessionResponse], error) {
+func (c *agentServiceClient) CreateSession(ctx context.Context, req *connect.Request[v1.CreateSessionRequest]) (*connect.Response[v1.CreateSessionResponse], error) {
 	return c.createSession.CallUnary(ctx, req)
 }
 
 // GetSession calls agent.v1.AgentService.GetSession.
-func (c *agentServiceClient) GetSession(ctx context.Context, req *connect_go.Request[v1.GetSessionRequest]) (*connect_go.Response[v1.GetSessionResponse], error) {
+func (c *agentServiceClient) GetSession(ctx context.Context, req *connect.Request[v1.GetSessionRequest]) (*connect.Response[v1.GetSessionResponse], error) {
 	return c.getSession.CallUnary(ctx, req)
 }
 
 // DeleteSession calls agent.v1.AgentService.DeleteSession.
-func (c *agentServiceClient) DeleteSession(ctx context.Context, req *connect_go.Request[v1.DeleteSessionRequest]) (*connect_go.Response[v1.DeleteSessionResponse], error) {
+func (c *agentServiceClient) DeleteSession(ctx context.Context, req *connect.Request[v1.DeleteSessionRequest]) (*connect.Response[v1.DeleteSessionResponse], error) {
 	return c.deleteSession.CallUnary(ctx, req)
 }
 
 // ListMessages calls agent.v1.AgentService.ListMessages.
-func (c *agentServiceClient) ListMessages(ctx context.Context, req *connect_go.Request[v1.ListMessagesRequest]) (*connect_go.Response[v1.ListMessagesResponse], error) {
+func (c *agentServiceClient) ListMessages(ctx context.Context, req *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error) {
 	return c.listMessages.CallUnary(ctx, req)
 }
 
 // Prompt calls agent.v1.AgentService.Prompt.
-func (c *agentServiceClient) Prompt(ctx context.Context, req *connect_go.Request[v1.PromptRequest]) (*connect_go.ServerStreamForClient[v1.PromptResponse], error) {
+func (c *agentServiceClient) Prompt(ctx context.Context, req *connect.Request[v1.PromptRequest]) (*connect.ServerStreamForClient[v1.PromptResponse], error) {
 	return c.prompt.CallServerStream(ctx, req)
 }
 
 // WatchSession calls agent.v1.AgentService.WatchSession.
-func (c *agentServiceClient) WatchSession(ctx context.Context, req *connect_go.Request[v1.WatchSessionRequest]) (*connect_go.ServerStreamForClient[v1.WatchSessionResponse], error) {
+func (c *agentServiceClient) WatchSession(ctx context.Context, req *connect.Request[v1.WatchSessionRequest]) (*connect.ServerStreamForClient[v1.WatchSessionResponse], error) {
 	return c.watchSession.CallServerStream(ctx, req)
 }
 
 // Fork calls agent.v1.AgentService.Fork.
-func (c *agentServiceClient) Fork(ctx context.Context, req *connect_go.Request[v1.ForkRequest]) (*connect_go.Response[v1.ForkResponse], error) {
+func (c *agentServiceClient) Fork(ctx context.Context, req *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error) {
 	return c.fork.CallUnary(ctx, req)
 }
 
 // Rename calls agent.v1.AgentService.Rename.
-func (c *agentServiceClient) Rename(ctx context.Context, req *connect_go.Request[v1.RenameRequest]) (*connect_go.Response[v1.RenameResponse], error) {
+func (c *agentServiceClient) Rename(ctx context.Context, req *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error) {
 	return c.rename.CallUnary(ctx, req)
 }
 
 // SetModel calls agent.v1.AgentService.SetModel.
-func (c *agentServiceClient) SetModel(ctx context.Context, req *connect_go.Request[v1.SetModelRequest]) (*connect_go.Response[v1.SetModelResponse], error) {
+func (c *agentServiceClient) SetModel(ctx context.Context, req *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error) {
 	return c.setModel.CallUnary(ctx, req)
 }
 
 // Undo calls agent.v1.AgentService.Undo.
-func (c *agentServiceClient) Undo(ctx context.Context, req *connect_go.Request[v1.UndoRequest]) (*connect_go.Response[v1.UndoResponse], error) {
+func (c *agentServiceClient) Undo(ctx context.Context, req *connect.Request[v1.UndoRequest]) (*connect.Response[v1.UndoResponse], error) {
 	return c.undo.CallUnary(ctx, req)
 }
 
 // State calls agent.v1.AgentService.State.
-func (c *agentServiceClient) State(ctx context.Context, req *connect_go.Request[v1.StateRequest]) (*connect_go.Response[v1.StateResponse], error) {
+func (c *agentServiceClient) State(ctx context.Context, req *connect.Request[v1.StateRequest]) (*connect.Response[v1.StateResponse], error) {
 	return c.state.CallUnary(ctx, req)
 }
 
 // Mailbox calls agent.v1.AgentService.Mailbox.
-func (c *agentServiceClient) Mailbox(ctx context.Context, req *connect_go.Request[v1.MailboxRequest]) (*connect_go.Response[v1.MailboxResponse], error) {
+func (c *agentServiceClient) Mailbox(ctx context.Context, req *connect.Request[v1.MailboxRequest]) (*connect.Response[v1.MailboxResponse], error) {
 	return c.mailbox.CallUnary(ctx, req)
 }
 
 // UpdateSettings calls agent.v1.AgentService.UpdateSettings.
-func (c *agentServiceClient) UpdateSettings(ctx context.Context, req *connect_go.Request[v1.UpdateSettingsRequest]) (*connect_go.Response[v1.UpdateSettingsResponse], error) {
+func (c *agentServiceClient) UpdateSettings(ctx context.Context, req *connect.Request[v1.UpdateSettingsRequest]) (*connect.Response[v1.UpdateSettingsResponse], error) {
 	return c.updateSettings.CallUnary(ctx, req)
 }
 
 // Interrupt calls agent.v1.AgentService.Interrupt.
-func (c *agentServiceClient) Interrupt(ctx context.Context, req *connect_go.Request[v1.InterruptRequest]) (*connect_go.Response[v1.InterruptResponse], error) {
+func (c *agentServiceClient) Interrupt(ctx context.Context, req *connect.Request[v1.InterruptRequest]) (*connect.Response[v1.InterruptResponse], error) {
 	return c.interrupt.CallUnary(ctx, req)
 }
 
 // Compact calls agent.v1.AgentService.Compact.
-func (c *agentServiceClient) Compact(ctx context.Context, req *connect_go.Request[v1.CompactRequest]) (*connect_go.Response[v1.CompactResponse], error) {
+func (c *agentServiceClient) Compact(ctx context.Context, req *connect.Request[v1.CompactRequest]) (*connect.Response[v1.CompactResponse], error) {
 	return c.compact.CallUnary(ctx, req)
 }
 
 // ListProviders calls agent.v1.AgentService.ListProviders.
-func (c *agentServiceClient) ListProviders(ctx context.Context, req *connect_go.Request[v1.ListProvidersRequest]) (*connect_go.Response[v1.ListProvidersResponse], error) {
+func (c *agentServiceClient) ListProviders(ctx context.Context, req *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error) {
 	return c.listProviders.CallUnary(ctx, req)
 }
 
 // ListProvidersCatalog calls agent.v1.AgentService.ListProvidersCatalog.
-func (c *agentServiceClient) ListProvidersCatalog(ctx context.Context, req *connect_go.Request[v1.ListProvidersCatalogRequest]) (*connect_go.Response[v1.ListProvidersCatalogResponse], error) {
+func (c *agentServiceClient) ListProvidersCatalog(ctx context.Context, req *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error) {
 	return c.listProvidersCatalog.CallUnary(ctx, req)
 }
 
 // RegisterProvider calls agent.v1.AgentService.RegisterProvider.
-func (c *agentServiceClient) RegisterProvider(ctx context.Context, req *connect_go.Request[v1.RegisterProviderRequest]) (*connect_go.Response[v1.RegisterProviderResponse], error) {
+func (c *agentServiceClient) RegisterProvider(ctx context.Context, req *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error) {
 	return c.registerProvider.CallUnary(ctx, req)
 }
 
 // DeleteProvider calls agent.v1.AgentService.DeleteProvider.
-func (c *agentServiceClient) DeleteProvider(ctx context.Context, req *connect_go.Request[v1.DeleteProviderRequest]) (*connect_go.Response[v1.DeleteProviderResponse], error) {
+func (c *agentServiceClient) DeleteProvider(ctx context.Context, req *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error) {
 	return c.deleteProvider.CallUnary(ctx, req)
 }
 
 // TestProvider calls agent.v1.AgentService.TestProvider.
-func (c *agentServiceClient) TestProvider(ctx context.Context, req *connect_go.Request[v1.TestProviderRequest]) (*connect_go.Response[v1.TestProviderResponse], error) {
+func (c *agentServiceClient) TestProvider(ctx context.Context, req *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error) {
 	return c.testProvider.CallUnary(ctx, req)
 }
 
 // ListModels calls agent.v1.AgentService.ListModels.
-func (c *agentServiceClient) ListModels(ctx context.Context, req *connect_go.Request[v1.ListModelsRequest]) (*connect_go.Response[v1.ListModelsResponse], error) {
+func (c *agentServiceClient) ListModels(ctx context.Context, req *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error) {
 	return c.listModels.CallUnary(ctx, req)
 }
 
 // ListPresets calls agent.v1.AgentService.ListPresets.
-func (c *agentServiceClient) ListPresets(ctx context.Context, req *connect_go.Request[v1.ListPresetsRequest]) (*connect_go.Response[v1.ListPresetsResponse], error) {
+func (c *agentServiceClient) ListPresets(ctx context.Context, req *connect.Request[v1.ListPresetsRequest]) (*connect.Response[v1.ListPresetsResponse], error) {
 	return c.listPresets.CallUnary(ctx, req)
 }
 
 // UpsertPreset calls agent.v1.AgentService.UpsertPreset.
-func (c *agentServiceClient) UpsertPreset(ctx context.Context, req *connect_go.Request[v1.UpsertPresetRequest]) (*connect_go.Response[v1.UpsertPresetResponse], error) {
+func (c *agentServiceClient) UpsertPreset(ctx context.Context, req *connect.Request[v1.UpsertPresetRequest]) (*connect.Response[v1.UpsertPresetResponse], error) {
 	return c.upsertPreset.CallUnary(ctx, req)
 }
 
 // DeletePreset calls agent.v1.AgentService.DeletePreset.
-func (c *agentServiceClient) DeletePreset(ctx context.Context, req *connect_go.Request[v1.DeletePresetRequest]) (*connect_go.Response[v1.DeletePresetResponse], error) {
+func (c *agentServiceClient) DeletePreset(ctx context.Context, req *connect.Request[v1.DeletePresetRequest]) (*connect.Response[v1.DeletePresetResponse], error) {
 	return c.deletePreset.CallUnary(ctx, req)
 }
 
 // PreviewPreset calls agent.v1.AgentService.PreviewPreset.
-func (c *agentServiceClient) PreviewPreset(ctx context.Context, req *connect_go.Request[v1.PreviewPresetRequest]) (*connect_go.Response[v1.PreviewPresetResponse], error) {
+func (c *agentServiceClient) PreviewPreset(ctx context.Context, req *connect.Request[v1.PreviewPresetRequest]) (*connect.Response[v1.PreviewPresetResponse], error) {
 	return c.previewPreset.CallUnary(ctx, req)
 }
 
 // GetConfig calls agent.v1.AgentService.GetConfig.
-func (c *agentServiceClient) GetConfig(ctx context.Context, req *connect_go.Request[v1.GetConfigRequest]) (*connect_go.Response[v1.GetConfigResponse], error) {
+func (c *agentServiceClient) GetConfig(ctx context.Context, req *connect.Request[v1.GetConfigRequest]) (*connect.Response[v1.GetConfigResponse], error) {
 	return c.getConfig.CallUnary(ctx, req)
 }
 
 // SetConfig calls agent.v1.AgentService.SetConfig.
-func (c *agentServiceClient) SetConfig(ctx context.Context, req *connect_go.Request[v1.SetConfigRequest]) (*connect_go.Response[v1.SetConfigResponse], error) {
+func (c *agentServiceClient) SetConfig(ctx context.Context, req *connect.Request[v1.SetConfigRequest]) (*connect.Response[v1.SetConfigResponse], error) {
 	return c.setConfig.CallUnary(ctx, req)
 }
 
 // ListTools calls agent.v1.AgentService.ListTools.
-func (c *agentServiceClient) ListTools(ctx context.Context, req *connect_go.Request[v1.ListToolsRequest]) (*connect_go.Response[v1.ListToolsResponse], error) {
+func (c *agentServiceClient) ListTools(ctx context.Context, req *connect.Request[v1.ListToolsRequest]) (*connect.Response[v1.ListToolsResponse], error) {
 	return c.listTools.CallUnary(ctx, req)
 }
 
 // GetToolConfig calls agent.v1.AgentService.GetToolConfig.
-func (c *agentServiceClient) GetToolConfig(ctx context.Context, req *connect_go.Request[v1.GetToolConfigRequest]) (*connect_go.Response[v1.GetToolConfigResponse], error) {
+func (c *agentServiceClient) GetToolConfig(ctx context.Context, req *connect.Request[v1.GetToolConfigRequest]) (*connect.Response[v1.GetToolConfigResponse], error) {
 	return c.getToolConfig.CallUnary(ctx, req)
 }
 
 // SetToolConfig calls agent.v1.AgentService.SetToolConfig.
-func (c *agentServiceClient) SetToolConfig(ctx context.Context, req *connect_go.Request[v1.SetToolConfigRequest]) (*connect_go.Response[v1.SetToolConfigResponse], error) {
+func (c *agentServiceClient) SetToolConfig(ctx context.Context, req *connect.Request[v1.SetToolConfigRequest]) (*connect.Response[v1.SetToolConfigResponse], error) {
 	return c.setToolConfig.CallUnary(ctx, req)
 }
 
 // SetExtensionConfig calls agent.v1.AgentService.SetExtensionConfig.
-func (c *agentServiceClient) SetExtensionConfig(ctx context.Context, req *connect_go.Request[v1.SetExtensionConfigRequest]) (*connect_go.Response[v1.SetExtensionConfigResponse], error) {
+func (c *agentServiceClient) SetExtensionConfig(ctx context.Context, req *connect.Request[v1.SetExtensionConfigRequest]) (*connect.Response[v1.SetExtensionConfigResponse], error) {
 	return c.setExtensionConfig.CallUnary(ctx, req)
 }
 
 // UploadFile calls agent.v1.AgentService.UploadFile.
-func (c *agentServiceClient) UploadFile(ctx context.Context, req *connect_go.Request[v1.UploadFileRequest]) (*connect_go.Response[v1.UploadFileResponse], error) {
+func (c *agentServiceClient) UploadFile(ctx context.Context, req *connect.Request[v1.UploadFileRequest]) (*connect.Response[v1.UploadFileResponse], error) {
 	return c.uploadFile.CallUnary(ctx, req)
 }
 
 // IngestFile calls agent.v1.AgentService.IngestFile.
-func (c *agentServiceClient) IngestFile(ctx context.Context, req *connect_go.Request[v1.IngestFileRequest]) (*connect_go.Response[v1.IngestFileResponse], error) {
+func (c *agentServiceClient) IngestFile(ctx context.Context, req *connect.Request[v1.IngestFileRequest]) (*connect.Response[v1.IngestFileResponse], error) {
 	return c.ingestFile.CallUnary(ctx, req)
 }
 
 // GetFile calls agent.v1.AgentService.GetFile.
-func (c *agentServiceClient) GetFile(ctx context.Context, req *connect_go.Request[v1.GetFileRequest]) (*connect_go.Response[v1.GetFileResponse], error) {
+func (c *agentServiceClient) GetFile(ctx context.Context, req *connect.Request[v1.GetFileRequest]) (*connect.Response[v1.GetFileResponse], error) {
 	return c.getFile.CallUnary(ctx, req)
 }
 
 // GetFileMeta calls agent.v1.AgentService.GetFileMeta.
-func (c *agentServiceClient) GetFileMeta(ctx context.Context, req *connect_go.Request[v1.GetFileMetaRequest]) (*connect_go.Response[v1.GetFileMetaResponse], error) {
+func (c *agentServiceClient) GetFileMeta(ctx context.Context, req *connect.Request[v1.GetFileMetaRequest]) (*connect.Response[v1.GetFileMetaResponse], error) {
 	return c.getFileMeta.CallUnary(ctx, req)
 }
 
 // GetAgentConfig calls agent.v1.AgentService.GetAgentConfig.
-func (c *agentServiceClient) GetAgentConfig(ctx context.Context, req *connect_go.Request[v1.GetAgentConfigRequest]) (*connect_go.Response[v1.GetAgentConfigResponse], error) {
+func (c *agentServiceClient) GetAgentConfig(ctx context.Context, req *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error) {
 	return c.getAgentConfig.CallUnary(ctx, req)
 }
 
 // AgentServiceHandler is an implementation of the agent.v1.AgentService service.
 type AgentServiceHandler interface {
-	Health(context.Context, *connect_go.Request[v1.HealthRequest]) (*connect_go.Response[v1.HealthResponse], error)
-	ListSessions(context.Context, *connect_go.Request[v1.ListSessionsRequest]) (*connect_go.Response[v1.ListSessionsResponse], error)
-	CreateSession(context.Context, *connect_go.Request[v1.CreateSessionRequest]) (*connect_go.Response[v1.CreateSessionResponse], error)
-	GetSession(context.Context, *connect_go.Request[v1.GetSessionRequest]) (*connect_go.Response[v1.GetSessionResponse], error)
-	DeleteSession(context.Context, *connect_go.Request[v1.DeleteSessionRequest]) (*connect_go.Response[v1.DeleteSessionResponse], error)
-	ListMessages(context.Context, *connect_go.Request[v1.ListMessagesRequest]) (*connect_go.Response[v1.ListMessagesResponse], error)
-	Prompt(context.Context, *connect_go.Request[v1.PromptRequest], *connect_go.ServerStream[v1.PromptResponse]) error
-	WatchSession(context.Context, *connect_go.Request[v1.WatchSessionRequest], *connect_go.ServerStream[v1.WatchSessionResponse]) error
-	Fork(context.Context, *connect_go.Request[v1.ForkRequest]) (*connect_go.Response[v1.ForkResponse], error)
-	Rename(context.Context, *connect_go.Request[v1.RenameRequest]) (*connect_go.Response[v1.RenameResponse], error)
-	SetModel(context.Context, *connect_go.Request[v1.SetModelRequest]) (*connect_go.Response[v1.SetModelResponse], error)
-	Undo(context.Context, *connect_go.Request[v1.UndoRequest]) (*connect_go.Response[v1.UndoResponse], error)
-	State(context.Context, *connect_go.Request[v1.StateRequest]) (*connect_go.Response[v1.StateResponse], error)
-	Mailbox(context.Context, *connect_go.Request[v1.MailboxRequest]) (*connect_go.Response[v1.MailboxResponse], error)
-	UpdateSettings(context.Context, *connect_go.Request[v1.UpdateSettingsRequest]) (*connect_go.Response[v1.UpdateSettingsResponse], error)
-	Interrupt(context.Context, *connect_go.Request[v1.InterruptRequest]) (*connect_go.Response[v1.InterruptResponse], error)
-	Compact(context.Context, *connect_go.Request[v1.CompactRequest]) (*connect_go.Response[v1.CompactResponse], error)
-	ListProviders(context.Context, *connect_go.Request[v1.ListProvidersRequest]) (*connect_go.Response[v1.ListProvidersResponse], error)
-	ListProvidersCatalog(context.Context, *connect_go.Request[v1.ListProvidersCatalogRequest]) (*connect_go.Response[v1.ListProvidersCatalogResponse], error)
-	RegisterProvider(context.Context, *connect_go.Request[v1.RegisterProviderRequest]) (*connect_go.Response[v1.RegisterProviderResponse], error)
-	DeleteProvider(context.Context, *connect_go.Request[v1.DeleteProviderRequest]) (*connect_go.Response[v1.DeleteProviderResponse], error)
-	TestProvider(context.Context, *connect_go.Request[v1.TestProviderRequest]) (*connect_go.Response[v1.TestProviderResponse], error)
-	ListModels(context.Context, *connect_go.Request[v1.ListModelsRequest]) (*connect_go.Response[v1.ListModelsResponse], error)
-	ListPresets(context.Context, *connect_go.Request[v1.ListPresetsRequest]) (*connect_go.Response[v1.ListPresetsResponse], error)
-	UpsertPreset(context.Context, *connect_go.Request[v1.UpsertPresetRequest]) (*connect_go.Response[v1.UpsertPresetResponse], error)
-	DeletePreset(context.Context, *connect_go.Request[v1.DeletePresetRequest]) (*connect_go.Response[v1.DeletePresetResponse], error)
-	PreviewPreset(context.Context, *connect_go.Request[v1.PreviewPresetRequest]) (*connect_go.Response[v1.PreviewPresetResponse], error)
-	GetConfig(context.Context, *connect_go.Request[v1.GetConfigRequest]) (*connect_go.Response[v1.GetConfigResponse], error)
-	SetConfig(context.Context, *connect_go.Request[v1.SetConfigRequest]) (*connect_go.Response[v1.SetConfigResponse], error)
-	ListTools(context.Context, *connect_go.Request[v1.ListToolsRequest]) (*connect_go.Response[v1.ListToolsResponse], error)
-	GetToolConfig(context.Context, *connect_go.Request[v1.GetToolConfigRequest]) (*connect_go.Response[v1.GetToolConfigResponse], error)
-	SetToolConfig(context.Context, *connect_go.Request[v1.SetToolConfigRequest]) (*connect_go.Response[v1.SetToolConfigResponse], error)
-	SetExtensionConfig(context.Context, *connect_go.Request[v1.SetExtensionConfigRequest]) (*connect_go.Response[v1.SetExtensionConfigResponse], error)
-	UploadFile(context.Context, *connect_go.Request[v1.UploadFileRequest]) (*connect_go.Response[v1.UploadFileResponse], error)
-	IngestFile(context.Context, *connect_go.Request[v1.IngestFileRequest]) (*connect_go.Response[v1.IngestFileResponse], error)
-	GetFile(context.Context, *connect_go.Request[v1.GetFileRequest]) (*connect_go.Response[v1.GetFileResponse], error)
-	GetFileMeta(context.Context, *connect_go.Request[v1.GetFileMetaRequest]) (*connect_go.Response[v1.GetFileMetaResponse], error)
-	GetAgentConfig(context.Context, *connect_go.Request[v1.GetAgentConfigRequest]) (*connect_go.Response[v1.GetAgentConfigResponse], error)
+	Health(context.Context, *connect.Request[v1.HealthRequest]) (*connect.Response[v1.HealthResponse], error)
+	ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error)
+	CreateSession(context.Context, *connect.Request[v1.CreateSessionRequest]) (*connect.Response[v1.CreateSessionResponse], error)
+	GetSession(context.Context, *connect.Request[v1.GetSessionRequest]) (*connect.Response[v1.GetSessionResponse], error)
+	DeleteSession(context.Context, *connect.Request[v1.DeleteSessionRequest]) (*connect.Response[v1.DeleteSessionResponse], error)
+	ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error)
+	Prompt(context.Context, *connect.Request[v1.PromptRequest], *connect.ServerStream[v1.PromptResponse]) error
+	WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest], *connect.ServerStream[v1.WatchSessionResponse]) error
+	Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error)
+	Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error)
+	SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error)
+	Undo(context.Context, *connect.Request[v1.UndoRequest]) (*connect.Response[v1.UndoResponse], error)
+	State(context.Context, *connect.Request[v1.StateRequest]) (*connect.Response[v1.StateResponse], error)
+	Mailbox(context.Context, *connect.Request[v1.MailboxRequest]) (*connect.Response[v1.MailboxResponse], error)
+	UpdateSettings(context.Context, *connect.Request[v1.UpdateSettingsRequest]) (*connect.Response[v1.UpdateSettingsResponse], error)
+	Interrupt(context.Context, *connect.Request[v1.InterruptRequest]) (*connect.Response[v1.InterruptResponse], error)
+	Compact(context.Context, *connect.Request[v1.CompactRequest]) (*connect.Response[v1.CompactResponse], error)
+	ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error)
+	ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error)
+	RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error)
+	DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error)
+	TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error)
+	ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error)
+	ListPresets(context.Context, *connect.Request[v1.ListPresetsRequest]) (*connect.Response[v1.ListPresetsResponse], error)
+	UpsertPreset(context.Context, *connect.Request[v1.UpsertPresetRequest]) (*connect.Response[v1.UpsertPresetResponse], error)
+	DeletePreset(context.Context, *connect.Request[v1.DeletePresetRequest]) (*connect.Response[v1.DeletePresetResponse], error)
+	PreviewPreset(context.Context, *connect.Request[v1.PreviewPresetRequest]) (*connect.Response[v1.PreviewPresetResponse], error)
+	GetConfig(context.Context, *connect.Request[v1.GetConfigRequest]) (*connect.Response[v1.GetConfigResponse], error)
+	SetConfig(context.Context, *connect.Request[v1.SetConfigRequest]) (*connect.Response[v1.SetConfigResponse], error)
+	ListTools(context.Context, *connect.Request[v1.ListToolsRequest]) (*connect.Response[v1.ListToolsResponse], error)
+	GetToolConfig(context.Context, *connect.Request[v1.GetToolConfigRequest]) (*connect.Response[v1.GetToolConfigResponse], error)
+	SetToolConfig(context.Context, *connect.Request[v1.SetToolConfigRequest]) (*connect.Response[v1.SetToolConfigResponse], error)
+	SetExtensionConfig(context.Context, *connect.Request[v1.SetExtensionConfigRequest]) (*connect.Response[v1.SetExtensionConfigResponse], error)
+	UploadFile(context.Context, *connect.Request[v1.UploadFileRequest]) (*connect.Response[v1.UploadFileResponse], error)
+	IngestFile(context.Context, *connect.Request[v1.IngestFileRequest]) (*connect.Response[v1.IngestFileResponse], error)
+	GetFile(context.Context, *connect.Request[v1.GetFileRequest]) (*connect.Response[v1.GetFileResponse], error)
+	GetFileMeta(context.Context, *connect.Request[v1.GetFileMetaRequest]) (*connect.Response[v1.GetFileMetaResponse], error)
+	GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error)
 }
 
 // NewAgentServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -658,196 +697,235 @@ type AgentServiceHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	agentServiceHealthHandler := connect_go.NewUnaryHandler(
+func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	agentServiceMethods := v1.File_agent_v1_agent_proto.Services().ByName("AgentService").Methods()
+	agentServiceHealthHandler := connect.NewUnaryHandler(
 		AgentServiceHealthProcedure,
 		svc.Health,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Health")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListSessionsHandler := connect_go.NewUnaryHandler(
+	agentServiceListSessionsHandler := connect.NewUnaryHandler(
 		AgentServiceListSessionsProcedure,
 		svc.ListSessions,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListSessions")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceCreateSessionHandler := connect_go.NewUnaryHandler(
+	agentServiceCreateSessionHandler := connect.NewUnaryHandler(
 		AgentServiceCreateSessionProcedure,
 		svc.CreateSession,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("CreateSession")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetSessionHandler := connect_go.NewUnaryHandler(
+	agentServiceGetSessionHandler := connect.NewUnaryHandler(
 		AgentServiceGetSessionProcedure,
 		svc.GetSession,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("GetSession")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceDeleteSessionHandler := connect_go.NewUnaryHandler(
+	agentServiceDeleteSessionHandler := connect.NewUnaryHandler(
 		AgentServiceDeleteSessionProcedure,
 		svc.DeleteSession,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("DeleteSession")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListMessagesHandler := connect_go.NewUnaryHandler(
+	agentServiceListMessagesHandler := connect.NewUnaryHandler(
 		AgentServiceListMessagesProcedure,
 		svc.ListMessages,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListMessages")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServicePromptHandler := connect_go.NewServerStreamHandler(
+	agentServicePromptHandler := connect.NewServerStreamHandler(
 		AgentServicePromptProcedure,
 		svc.Prompt,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Prompt")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceWatchSessionHandler := connect_go.NewServerStreamHandler(
+	agentServiceWatchSessionHandler := connect.NewServerStreamHandler(
 		AgentServiceWatchSessionProcedure,
 		svc.WatchSession,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("WatchSession")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceForkHandler := connect_go.NewUnaryHandler(
+	agentServiceForkHandler := connect.NewUnaryHandler(
 		AgentServiceForkProcedure,
 		svc.Fork,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Fork")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceRenameHandler := connect_go.NewUnaryHandler(
+	agentServiceRenameHandler := connect.NewUnaryHandler(
 		AgentServiceRenameProcedure,
 		svc.Rename,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Rename")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceSetModelHandler := connect_go.NewUnaryHandler(
+	agentServiceSetModelHandler := connect.NewUnaryHandler(
 		AgentServiceSetModelProcedure,
 		svc.SetModel,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("SetModel")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceUndoHandler := connect_go.NewUnaryHandler(
+	agentServiceUndoHandler := connect.NewUnaryHandler(
 		AgentServiceUndoProcedure,
 		svc.Undo,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Undo")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceStateHandler := connect_go.NewUnaryHandler(
+	agentServiceStateHandler := connect.NewUnaryHandler(
 		AgentServiceStateProcedure,
 		svc.State,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("State")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceMailboxHandler := connect_go.NewUnaryHandler(
+	agentServiceMailboxHandler := connect.NewUnaryHandler(
 		AgentServiceMailboxProcedure,
 		svc.Mailbox,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Mailbox")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceUpdateSettingsHandler := connect_go.NewUnaryHandler(
+	agentServiceUpdateSettingsHandler := connect.NewUnaryHandler(
 		AgentServiceUpdateSettingsProcedure,
 		svc.UpdateSettings,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("UpdateSettings")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceInterruptHandler := connect_go.NewUnaryHandler(
+	agentServiceInterruptHandler := connect.NewUnaryHandler(
 		AgentServiceInterruptProcedure,
 		svc.Interrupt,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Interrupt")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceCompactHandler := connect_go.NewUnaryHandler(
+	agentServiceCompactHandler := connect.NewUnaryHandler(
 		AgentServiceCompactProcedure,
 		svc.Compact,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("Compact")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListProvidersHandler := connect_go.NewUnaryHandler(
+	agentServiceListProvidersHandler := connect.NewUnaryHandler(
 		AgentServiceListProvidersProcedure,
 		svc.ListProviders,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListProviders")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListProvidersCatalogHandler := connect_go.NewUnaryHandler(
+	agentServiceListProvidersCatalogHandler := connect.NewUnaryHandler(
 		AgentServiceListProvidersCatalogProcedure,
 		svc.ListProvidersCatalog,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListProvidersCatalog")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceRegisterProviderHandler := connect_go.NewUnaryHandler(
+	agentServiceRegisterProviderHandler := connect.NewUnaryHandler(
 		AgentServiceRegisterProviderProcedure,
 		svc.RegisterProvider,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("RegisterProvider")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceDeleteProviderHandler := connect_go.NewUnaryHandler(
+	agentServiceDeleteProviderHandler := connect.NewUnaryHandler(
 		AgentServiceDeleteProviderProcedure,
 		svc.DeleteProvider,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("DeleteProvider")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceTestProviderHandler := connect_go.NewUnaryHandler(
+	agentServiceTestProviderHandler := connect.NewUnaryHandler(
 		AgentServiceTestProviderProcedure,
 		svc.TestProvider,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("TestProvider")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListModelsHandler := connect_go.NewUnaryHandler(
+	agentServiceListModelsHandler := connect.NewUnaryHandler(
 		AgentServiceListModelsProcedure,
 		svc.ListModels,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListModels")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListPresetsHandler := connect_go.NewUnaryHandler(
+	agentServiceListPresetsHandler := connect.NewUnaryHandler(
 		AgentServiceListPresetsProcedure,
 		svc.ListPresets,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListPresets")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceUpsertPresetHandler := connect_go.NewUnaryHandler(
+	agentServiceUpsertPresetHandler := connect.NewUnaryHandler(
 		AgentServiceUpsertPresetProcedure,
 		svc.UpsertPreset,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("UpsertPreset")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceDeletePresetHandler := connect_go.NewUnaryHandler(
+	agentServiceDeletePresetHandler := connect.NewUnaryHandler(
 		AgentServiceDeletePresetProcedure,
 		svc.DeletePreset,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("DeletePreset")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServicePreviewPresetHandler := connect_go.NewUnaryHandler(
+	agentServicePreviewPresetHandler := connect.NewUnaryHandler(
 		AgentServicePreviewPresetProcedure,
 		svc.PreviewPreset,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("PreviewPreset")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetConfigHandler := connect_go.NewUnaryHandler(
+	agentServiceGetConfigHandler := connect.NewUnaryHandler(
 		AgentServiceGetConfigProcedure,
 		svc.GetConfig,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("GetConfig")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceSetConfigHandler := connect_go.NewUnaryHandler(
+	agentServiceSetConfigHandler := connect.NewUnaryHandler(
 		AgentServiceSetConfigProcedure,
 		svc.SetConfig,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("SetConfig")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceListToolsHandler := connect_go.NewUnaryHandler(
+	agentServiceListToolsHandler := connect.NewUnaryHandler(
 		AgentServiceListToolsProcedure,
 		svc.ListTools,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("ListTools")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetToolConfigHandler := connect_go.NewUnaryHandler(
+	agentServiceGetToolConfigHandler := connect.NewUnaryHandler(
 		AgentServiceGetToolConfigProcedure,
 		svc.GetToolConfig,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("GetToolConfig")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceSetToolConfigHandler := connect_go.NewUnaryHandler(
+	agentServiceSetToolConfigHandler := connect.NewUnaryHandler(
 		AgentServiceSetToolConfigProcedure,
 		svc.SetToolConfig,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("SetToolConfig")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceSetExtensionConfigHandler := connect_go.NewUnaryHandler(
+	agentServiceSetExtensionConfigHandler := connect.NewUnaryHandler(
 		AgentServiceSetExtensionConfigProcedure,
 		svc.SetExtensionConfig,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("SetExtensionConfig")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceUploadFileHandler := connect_go.NewUnaryHandler(
+	agentServiceUploadFileHandler := connect.NewUnaryHandler(
 		AgentServiceUploadFileProcedure,
 		svc.UploadFile,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("UploadFile")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceIngestFileHandler := connect_go.NewUnaryHandler(
+	agentServiceIngestFileHandler := connect.NewUnaryHandler(
 		AgentServiceIngestFileProcedure,
 		svc.IngestFile,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("IngestFile")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetFileHandler := connect_go.NewUnaryHandler(
+	agentServiceGetFileHandler := connect.NewUnaryHandler(
 		AgentServiceGetFileProcedure,
 		svc.GetFile,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("GetFile")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetFileMetaHandler := connect_go.NewUnaryHandler(
+	agentServiceGetFileMetaHandler := connect.NewUnaryHandler(
 		AgentServiceGetFileMetaProcedure,
 		svc.GetFileMeta,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("GetFileMeta")),
+		connect.WithHandlerOptions(opts...),
 	)
-	agentServiceGetAgentConfigHandler := connect_go.NewUnaryHandler(
+	agentServiceGetAgentConfigHandler := connect.NewUnaryHandler(
 		AgentServiceGetAgentConfigProcedure,
 		svc.GetAgentConfig,
-		opts...,
+		connect.WithSchema(agentServiceMethods.ByName("GetAgentConfig")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/agent.v1.AgentService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -936,154 +1014,154 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect_go.HandlerO
 // UnimplementedAgentServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAgentServiceHandler struct{}
 
-func (UnimplementedAgentServiceHandler) Health(context.Context, *connect_go.Request[v1.HealthRequest]) (*connect_go.Response[v1.HealthResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Health is not implemented"))
+func (UnimplementedAgentServiceHandler) Health(context.Context, *connect.Request[v1.HealthRequest]) (*connect.Response[v1.HealthResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Health is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListSessions(context.Context, *connect_go.Request[v1.ListSessionsRequest]) (*connect_go.Response[v1.ListSessionsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListSessions is not implemented"))
+func (UnimplementedAgentServiceHandler) ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListSessions is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) CreateSession(context.Context, *connect_go.Request[v1.CreateSessionRequest]) (*connect_go.Response[v1.CreateSessionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.CreateSession is not implemented"))
+func (UnimplementedAgentServiceHandler) CreateSession(context.Context, *connect.Request[v1.CreateSessionRequest]) (*connect.Response[v1.CreateSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.CreateSession is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetSession(context.Context, *connect_go.Request[v1.GetSessionRequest]) (*connect_go.Response[v1.GetSessionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.GetSession is not implemented"))
+func (UnimplementedAgentServiceHandler) GetSession(context.Context, *connect.Request[v1.GetSessionRequest]) (*connect.Response[v1.GetSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetSession is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) DeleteSession(context.Context, *connect_go.Request[v1.DeleteSessionRequest]) (*connect_go.Response[v1.DeleteSessionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.DeleteSession is not implemented"))
+func (UnimplementedAgentServiceHandler) DeleteSession(context.Context, *connect.Request[v1.DeleteSessionRequest]) (*connect.Response[v1.DeleteSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DeleteSession is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListMessages(context.Context, *connect_go.Request[v1.ListMessagesRequest]) (*connect_go.Response[v1.ListMessagesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListMessages is not implemented"))
+func (UnimplementedAgentServiceHandler) ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListMessages is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Prompt(context.Context, *connect_go.Request[v1.PromptRequest], *connect_go.ServerStream[v1.PromptResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Prompt is not implemented"))
+func (UnimplementedAgentServiceHandler) Prompt(context.Context, *connect.Request[v1.PromptRequest], *connect.ServerStream[v1.PromptResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Prompt is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) WatchSession(context.Context, *connect_go.Request[v1.WatchSessionRequest], *connect_go.ServerStream[v1.WatchSessionResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.WatchSession is not implemented"))
+func (UnimplementedAgentServiceHandler) WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest], *connect.ServerStream[v1.WatchSessionResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.WatchSession is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Fork(context.Context, *connect_go.Request[v1.ForkRequest]) (*connect_go.Response[v1.ForkResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Fork is not implemented"))
+func (UnimplementedAgentServiceHandler) Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Fork is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Rename(context.Context, *connect_go.Request[v1.RenameRequest]) (*connect_go.Response[v1.RenameResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Rename is not implemented"))
+func (UnimplementedAgentServiceHandler) Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Rename is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) SetModel(context.Context, *connect_go.Request[v1.SetModelRequest]) (*connect_go.Response[v1.SetModelResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.SetModel is not implemented"))
+func (UnimplementedAgentServiceHandler) SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.SetModel is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Undo(context.Context, *connect_go.Request[v1.UndoRequest]) (*connect_go.Response[v1.UndoResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Undo is not implemented"))
+func (UnimplementedAgentServiceHandler) Undo(context.Context, *connect.Request[v1.UndoRequest]) (*connect.Response[v1.UndoResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Undo is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) State(context.Context, *connect_go.Request[v1.StateRequest]) (*connect_go.Response[v1.StateResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.State is not implemented"))
+func (UnimplementedAgentServiceHandler) State(context.Context, *connect.Request[v1.StateRequest]) (*connect.Response[v1.StateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.State is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Mailbox(context.Context, *connect_go.Request[v1.MailboxRequest]) (*connect_go.Response[v1.MailboxResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Mailbox is not implemented"))
+func (UnimplementedAgentServiceHandler) Mailbox(context.Context, *connect.Request[v1.MailboxRequest]) (*connect.Response[v1.MailboxResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Mailbox is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) UpdateSettings(context.Context, *connect_go.Request[v1.UpdateSettingsRequest]) (*connect_go.Response[v1.UpdateSettingsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.UpdateSettings is not implemented"))
+func (UnimplementedAgentServiceHandler) UpdateSettings(context.Context, *connect.Request[v1.UpdateSettingsRequest]) (*connect.Response[v1.UpdateSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.UpdateSettings is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Interrupt(context.Context, *connect_go.Request[v1.InterruptRequest]) (*connect_go.Response[v1.InterruptResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Interrupt is not implemented"))
+func (UnimplementedAgentServiceHandler) Interrupt(context.Context, *connect.Request[v1.InterruptRequest]) (*connect.Response[v1.InterruptResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Interrupt is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) Compact(context.Context, *connect_go.Request[v1.CompactRequest]) (*connect_go.Response[v1.CompactResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.Compact is not implemented"))
+func (UnimplementedAgentServiceHandler) Compact(context.Context, *connect.Request[v1.CompactRequest]) (*connect.Response[v1.CompactResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.Compact is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListProviders(context.Context, *connect_go.Request[v1.ListProvidersRequest]) (*connect_go.Response[v1.ListProvidersResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListProviders is not implemented"))
+func (UnimplementedAgentServiceHandler) ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListProviders is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListProvidersCatalog(context.Context, *connect_go.Request[v1.ListProvidersCatalogRequest]) (*connect_go.Response[v1.ListProvidersCatalogResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListProvidersCatalog is not implemented"))
+func (UnimplementedAgentServiceHandler) ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListProvidersCatalog is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) RegisterProvider(context.Context, *connect_go.Request[v1.RegisterProviderRequest]) (*connect_go.Response[v1.RegisterProviderResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.RegisterProvider is not implemented"))
+func (UnimplementedAgentServiceHandler) RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.RegisterProvider is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) DeleteProvider(context.Context, *connect_go.Request[v1.DeleteProviderRequest]) (*connect_go.Response[v1.DeleteProviderResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.DeleteProvider is not implemented"))
+func (UnimplementedAgentServiceHandler) DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DeleteProvider is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) TestProvider(context.Context, *connect_go.Request[v1.TestProviderRequest]) (*connect_go.Response[v1.TestProviderResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.TestProvider is not implemented"))
+func (UnimplementedAgentServiceHandler) TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.TestProvider is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListModels(context.Context, *connect_go.Request[v1.ListModelsRequest]) (*connect_go.Response[v1.ListModelsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListModels is not implemented"))
+func (UnimplementedAgentServiceHandler) ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListModels is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListPresets(context.Context, *connect_go.Request[v1.ListPresetsRequest]) (*connect_go.Response[v1.ListPresetsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListPresets is not implemented"))
+func (UnimplementedAgentServiceHandler) ListPresets(context.Context, *connect.Request[v1.ListPresetsRequest]) (*connect.Response[v1.ListPresetsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListPresets is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) UpsertPreset(context.Context, *connect_go.Request[v1.UpsertPresetRequest]) (*connect_go.Response[v1.UpsertPresetResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.UpsertPreset is not implemented"))
+func (UnimplementedAgentServiceHandler) UpsertPreset(context.Context, *connect.Request[v1.UpsertPresetRequest]) (*connect.Response[v1.UpsertPresetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.UpsertPreset is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) DeletePreset(context.Context, *connect_go.Request[v1.DeletePresetRequest]) (*connect_go.Response[v1.DeletePresetResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.DeletePreset is not implemented"))
+func (UnimplementedAgentServiceHandler) DeletePreset(context.Context, *connect.Request[v1.DeletePresetRequest]) (*connect.Response[v1.DeletePresetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DeletePreset is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) PreviewPreset(context.Context, *connect_go.Request[v1.PreviewPresetRequest]) (*connect_go.Response[v1.PreviewPresetResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.PreviewPreset is not implemented"))
+func (UnimplementedAgentServiceHandler) PreviewPreset(context.Context, *connect.Request[v1.PreviewPresetRequest]) (*connect.Response[v1.PreviewPresetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.PreviewPreset is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetConfig(context.Context, *connect_go.Request[v1.GetConfigRequest]) (*connect_go.Response[v1.GetConfigResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.GetConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) GetConfig(context.Context, *connect.Request[v1.GetConfigRequest]) (*connect.Response[v1.GetConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetConfig is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) SetConfig(context.Context, *connect_go.Request[v1.SetConfigRequest]) (*connect_go.Response[v1.SetConfigResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.SetConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) SetConfig(context.Context, *connect.Request[v1.SetConfigRequest]) (*connect.Response[v1.SetConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.SetConfig is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) ListTools(context.Context, *connect_go.Request[v1.ListToolsRequest]) (*connect_go.Response[v1.ListToolsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.ListTools is not implemented"))
+func (UnimplementedAgentServiceHandler) ListTools(context.Context, *connect.Request[v1.ListToolsRequest]) (*connect.Response[v1.ListToolsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.ListTools is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetToolConfig(context.Context, *connect_go.Request[v1.GetToolConfigRequest]) (*connect_go.Response[v1.GetToolConfigResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.GetToolConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) GetToolConfig(context.Context, *connect.Request[v1.GetToolConfigRequest]) (*connect.Response[v1.GetToolConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetToolConfig is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) SetToolConfig(context.Context, *connect_go.Request[v1.SetToolConfigRequest]) (*connect_go.Response[v1.SetToolConfigResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.SetToolConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) SetToolConfig(context.Context, *connect.Request[v1.SetToolConfigRequest]) (*connect.Response[v1.SetToolConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.SetToolConfig is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) SetExtensionConfig(context.Context, *connect_go.Request[v1.SetExtensionConfigRequest]) (*connect_go.Response[v1.SetExtensionConfigResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.SetExtensionConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) SetExtensionConfig(context.Context, *connect.Request[v1.SetExtensionConfigRequest]) (*connect.Response[v1.SetExtensionConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.SetExtensionConfig is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) UploadFile(context.Context, *connect_go.Request[v1.UploadFileRequest]) (*connect_go.Response[v1.UploadFileResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.UploadFile is not implemented"))
+func (UnimplementedAgentServiceHandler) UploadFile(context.Context, *connect.Request[v1.UploadFileRequest]) (*connect.Response[v1.UploadFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.UploadFile is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) IngestFile(context.Context, *connect_go.Request[v1.IngestFileRequest]) (*connect_go.Response[v1.IngestFileResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.IngestFile is not implemented"))
+func (UnimplementedAgentServiceHandler) IngestFile(context.Context, *connect.Request[v1.IngestFileRequest]) (*connect.Response[v1.IngestFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.IngestFile is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetFile(context.Context, *connect_go.Request[v1.GetFileRequest]) (*connect_go.Response[v1.GetFileResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.GetFile is not implemented"))
+func (UnimplementedAgentServiceHandler) GetFile(context.Context, *connect.Request[v1.GetFileRequest]) (*connect.Response[v1.GetFileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetFile is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetFileMeta(context.Context, *connect_go.Request[v1.GetFileMetaRequest]) (*connect_go.Response[v1.GetFileMetaResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.GetFileMeta is not implemented"))
+func (UnimplementedAgentServiceHandler) GetFileMeta(context.Context, *connect.Request[v1.GetFileMetaRequest]) (*connect.Response[v1.GetFileMetaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetFileMeta is not implemented"))
 }
 
-func (UnimplementedAgentServiceHandler) GetAgentConfig(context.Context, *connect_go.Request[v1.GetAgentConfigRequest]) (*connect_go.Response[v1.GetAgentConfigResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("agent.v1.AgentService.GetAgentConfig is not implemented"))
+func (UnimplementedAgentServiceHandler) GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetAgentConfig is not implemented"))
 }
