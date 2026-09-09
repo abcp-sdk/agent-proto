@@ -3317,8 +3317,12 @@ func (x *ModelInfo) GetName() string {
 	return ""
 }
 
+// ListPresets lists presets. When locale is set (e.g. "zh"), each preset's
+// system_prompt is resolved from its i18n map for that locale, falling back
+// to the default prompt.
 type ListPresetsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locale        string                 `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3351,6 +3355,13 @@ func (x *ListPresetsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListPresetsRequest.ProtoReflect.Descriptor instead.
 func (*ListPresetsRequest) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *ListPresetsRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
 }
 
 type ListPresetsResponse struct {
@@ -5068,8 +5079,9 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x06models\x18\x01 \x03(\v2\x13.agent.v1.ModelInfoR\x06models\"/\n" +
 	"\tModelInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\x14\n" +
-	"\x12ListPresetsRequest\"A\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\",\n" +
+	"\x12ListPresetsRequest\x12\x16\n" +
+	"\x06locale\x18\x01 \x01(\tR\x06locale\"A\n" +
 	"\x13ListPresetsResponse\x12*\n" +
 	"\apresets\x18\x01 \x03(\v2\x10.agent.v1.PresetR\apresets\"?\n" +
 	"\x13UpsertPresetRequest\x12(\n" +
