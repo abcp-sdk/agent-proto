@@ -3185,8 +3185,11 @@ func (x *TestProviderResponse) GetResult() string {
 	return ""
 }
 
+// ListModels returns models. When provider_id is set, only that provider's
+// models are returned; empty returns every registered provider's models.
 type ListModelsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3219,6 +3222,13 @@ func (x *ListModelsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListModelsRequest.ProtoReflect.Descriptor instead.
 func (*ListModelsRequest) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListModelsRequest) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
 }
 
 type ListModelsResponse struct {
@@ -5073,8 +5083,10 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x05model\x18\x05 \x01(\tR\x05model\">\n" +
 	"\x14TestProviderResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x16\n" +
-	"\x06result\x18\x02 \x01(\tR\x06result\"\x13\n" +
-	"\x11ListModelsRequest\"A\n" +
+	"\x06result\x18\x02 \x01(\tR\x06result\"4\n" +
+	"\x11ListModelsRequest\x12\x1f\n" +
+	"\vprovider_id\x18\x01 \x01(\tR\n" +
+	"providerId\"A\n" +
 	"\x12ListModelsResponse\x12+\n" +
 	"\x06models\x18\x01 \x03(\v2\x13.agent.v1.ModelInfoR\x06models\"/\n" +
 	"\tModelInfo\x12\x0e\n" +
