@@ -600,7 +600,7 @@ type Provider struct {
 	BaseUrl       string                 `protobuf:"bytes,3,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
 	ApiKey        string                 `protobuf:"bytes,4,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	Headers       map[string]string      `protobuf:"bytes,5,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Models        []string               `protobuf:"bytes,6,rep,name=models,proto3" json:"models,omitempty"`
+	Models        []*ProviderModel       `protobuf:"bytes,6,rep,name=models,proto3" json:"models,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -671,7 +671,7 @@ func (x *Provider) GetHeaders() map[string]string {
 	return nil
 }
 
-func (x *Provider) GetModels() []string {
+func (x *Provider) GetModels() []*ProviderModel {
 	if x != nil {
 		return x.Models
 	}
@@ -685,11 +685,14 @@ func (x *Provider) GetUpdatedAt() string {
 	return ""
 }
 
-// Provider model entry.
+// Provider model entry. `context_limit` (the model's context window in
+// tokens) is REQUIRED and user-supplied: it drives compaction budgets, and it
+// is never inferred from an external catalog.
 type ProviderModel struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ContextLimit  int64                  `protobuf:"varint,3,opt,name=context_limit,json=contextLimit,proto3" json:"context_limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -736,6 +739,13 @@ func (x *ProviderModel) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *ProviderModel) GetContextLimit() int64 {
+	if x != nil {
+		return x.ContextLimit
+	}
+	return 0
 }
 
 // Tool discovery entry.
@@ -2356,13 +2366,15 @@ func (x *MailboxResponse) GetMailbox() []*MailboxEntry {
 }
 
 type UpdateSettingsRequest struct {
-	state        protoimpl.MessageState `protogen:"open.v1"`
-	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Model        string                 `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
-	Preset       string                 `protobuf:"bytes,3,opt,name=preset,proto3" json:"preset,omitempty"`
-	MaxTurns     int32                  `protobuf:"varint,4,opt,name=max_turns,json=maxTurns,proto3" json:"max_turns,omitempty"`
-	SystemPrompt string                 `protobuf:"bytes,5,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
-	Locale       string                 `protobuf:"bytes,6,opt,name=locale,proto3" json:"locale,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Model  string                 `protobuf:"bytes,2,opt,name=model,proto3" json:"model,omitempty"`
+	Preset string                 `protobuf:"bytes,3,opt,name=preset,proto3" json:"preset,omitempty"`
+	// Optional: omitted means "inherit (preset / default)"; an explicit value
+	// must be > 0 (0 is rejected).
+	MaxTurns     *int32 `protobuf:"varint,4,opt,name=max_turns,json=maxTurns,proto3,oneof" json:"max_turns,omitempty"`
+	SystemPrompt string `protobuf:"bytes,5,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
+	Locale       string `protobuf:"bytes,6,opt,name=locale,proto3" json:"locale,omitempty"`
 	// Selected reasoning variant id (empty clears it).
 	Variant       string `protobuf:"bytes,7,opt,name=variant,proto3" json:"variant,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -2421,8 +2433,8 @@ func (x *UpdateSettingsRequest) GetPreset() string {
 }
 
 func (x *UpdateSettingsRequest) GetMaxTurns() int32 {
-	if x != nil {
-		return x.MaxTurns
+	if x != nil && x.MaxTurns != nil {
+		return *x.MaxTurns
 	}
 	return 0
 }
@@ -3330,7 +3342,9 @@ type ModelInfo struct {
 	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// Reasoning variants offered by this model (from the models.dev catalog).
 	// Empty when the model has no reasoning options or is not in the catalog.
-	Variants      []*ModelVariant `protobuf:"bytes,3,rep,name=variants,proto3" json:"variants,omitempty"`
+	Variants []*ModelVariant `protobuf:"bytes,3,rep,name=variants,proto3" json:"variants,omitempty"`
+	// Context window (tokens) configured for this provider model.
+	ContextLimit  int64 `protobuf:"varint,4,opt,name=context_limit,json=contextLimit,proto3" json:"context_limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3384,6 +3398,13 @@ func (x *ModelInfo) GetVariants() []*ModelVariant {
 		return x.Variants
 	}
 	return nil
+}
+
+func (x *ModelInfo) GetContextLimit() int64 {
+	if x != nil {
+		return x.ContextLimit
+	}
+	return 0
 }
 
 // A selectable reasoning variant for a model (e.g. low/medium/high/max, or a
@@ -5027,23 +5048,24 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x12system_prompt_i18n\x18\x03 \x01(\tR\x10systemPromptI18n\x12\x14\n" +
 	"\x05tools\x18\x04 \x03(\tR\x05tools\x12\x1b\n" +
 	"\tmax_turns\x18\x05 \x01(\x05R\bmaxTurns\x12\x1b\n" +
-	"\tis_system\x18\x06 \x01(\bR\bisSystem\"\xa8\x02\n" +
+	"\tis_system\x18\x06 \x01(\bR\bisSystem\"\xc1\x02\n" +
 	"\bProvider\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x19\n" +
 	"\bapi_type\x18\x02 \x01(\tR\aapiType\x12\x19\n" +
 	"\bbase_url\x18\x03 \x01(\tR\abaseUrl\x12\x17\n" +
 	"\aapi_key\x18\x04 \x01(\tR\x06apiKey\x129\n" +
-	"\aheaders\x18\x05 \x03(\v2\x1f.agent.v1.Provider.HeadersEntryR\aheaders\x12\x16\n" +
-	"\x06models\x18\x06 \x03(\tR\x06models\x12\x1d\n" +
+	"\aheaders\x18\x05 \x03(\v2\x1f.agent.v1.Provider.HeadersEntryR\aheaders\x12/\n" +
+	"\x06models\x18\x06 \x03(\v2\x17.agent.v1.ProviderModelR\x06models\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\a \x01(\tR\tupdatedAt\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"3\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"X\n" +
 	"\rProviderModel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\xfe\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
+	"\rcontext_limit\x18\x03 \x01(\x03R\fcontextLimit\"\xfe\x01\n" +
 	"\bToolInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
@@ -5151,15 +5173,17 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"S\n" +
 	"\x0fMailboxResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x120\n" +
-	"\amailbox\x18\x02 \x03(\v2\x16.agent.v1.MailboxEntryR\amailbox\"\xc9\x01\n" +
+	"\amailbox\x18\x02 \x03(\v2\x16.agent.v1.MailboxEntryR\amailbox\"\xdc\x01\n" +
 	"\x15UpdateSettingsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\x16\n" +
-	"\x06preset\x18\x03 \x01(\tR\x06preset\x12\x1b\n" +
-	"\tmax_turns\x18\x04 \x01(\x05R\bmaxTurns\x12#\n" +
+	"\x06preset\x18\x03 \x01(\tR\x06preset\x12 \n" +
+	"\tmax_turns\x18\x04 \x01(\x05H\x00R\bmaxTurns\x88\x01\x01\x12#\n" +
 	"\rsystem_prompt\x18\x05 \x01(\tR\fsystemPrompt\x12\x16\n" +
 	"\x06locale\x18\x06 \x01(\tR\x06locale\x12\x18\n" +
-	"\avariant\x18\a \x01(\tR\avariant\"E\n" +
+	"\avariant\x18\a \x01(\tR\avariantB\f\n" +
+	"\n" +
+	"_max_turns\"E\n" +
 	"\x16UpdateSettingsResponse\x12+\n" +
 	"\asession\x18\x01 \x01(\v2\x11.agent.v1.SessionR\asession\"\"\n" +
 	"\x10InterruptRequest\x12\x0e\n" +
@@ -5214,11 +5238,12 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"A\n" +
 	"\x12ListModelsResponse\x12+\n" +
-	"\x06models\x18\x01 \x03(\v2\x13.agent.v1.ModelInfoR\x06models\"c\n" +
+	"\x06models\x18\x01 \x03(\v2\x13.agent.v1.ModelInfoR\x06models\"\x88\x01\n" +
 	"\tModelInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x122\n" +
-	"\bvariants\x18\x03 \x03(\v2\x16.agent.v1.ModelVariantR\bvariants\"T\n" +
+	"\bvariants\x18\x03 \x03(\v2\x16.agent.v1.ModelVariantR\bvariants\x12#\n" +
+	"\rcontext_limit\x18\x04 \x01(\x03R\fcontextLimit\"T\n" +
 	"\fModelVariant\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -5459,121 +5484,122 @@ var file_agent_v1_agent_proto_goTypes = []any{
 var file_agent_v1_agent_proto_depIdxs = []int32{
 	2,  // 0: agent.v1.Message.parts:type_name -> agent.v1.Part
 	90, // 1: agent.v1.Provider.headers:type_name -> agent.v1.Provider.HeadersEntry
-	95, // 2: agent.v1.ToolInfo.parameters:type_name -> google.protobuf.Struct
-	8,  // 3: agent.v1.ToolInfo.config_fields:type_name -> agent.v1.ToolConfigField
-	96, // 4: agent.v1.ToolConfigField.default:type_name -> google.protobuf.Value
-	91, // 5: agent.v1.ToolConfig.values:type_name -> agent.v1.ToolConfig.ValuesEntry
-	92, // 6: agent.v1.PromptResponse.params:type_name -> agent.v1.PromptResponse.ParamsEntry
-	95, // 7: agent.v1.WatchSessionResponse.params:type_name -> google.protobuf.Struct
-	0,  // 8: agent.v1.ListSessionsResponse.sessions:type_name -> agent.v1.Session
-	0,  // 9: agent.v1.GetSessionResponse.session:type_name -> agent.v1.Session
-	1,  // 10: agent.v1.ListMessagesResponse.messages:type_name -> agent.v1.Message
-	13, // 11: agent.v1.PromptRequest.attachments:type_name -> agent.v1.FileRef
-	0,  // 12: agent.v1.ForkResponse.session:type_name -> agent.v1.Session
-	0,  // 13: agent.v1.RenameResponse.session:type_name -> agent.v1.Session
-	0,  // 14: agent.v1.SetModelResponse.session:type_name -> agent.v1.Session
-	0,  // 15: agent.v1.UndoResponse.session:type_name -> agent.v1.Session
-	95, // 16: agent.v1.StateResponse.state:type_name -> google.protobuf.Struct
-	3,  // 17: agent.v1.MailboxResponse.mailbox:type_name -> agent.v1.MailboxEntry
-	0,  // 18: agent.v1.UpdateSettingsResponse.session:type_name -> agent.v1.Session
-	5,  // 19: agent.v1.ListProvidersResponse.providers:type_name -> agent.v1.Provider
-	93, // 20: agent.v1.ListProvidersCatalogResponse.providers:type_name -> agent.v1.ListProvidersCatalogResponse.ProvidersEntry
-	94, // 21: agent.v1.CatalogProvider.models:type_name -> agent.v1.CatalogProvider.ModelsEntry
-	5,  // 22: agent.v1.RegisterProviderRequest.provider:type_name -> agent.v1.Provider
-	56, // 23: agent.v1.ListModelsResponse.models:type_name -> agent.v1.ModelInfo
-	57, // 24: agent.v1.ModelInfo.variants:type_name -> agent.v1.ModelVariant
-	4,  // 25: agent.v1.ListPresetsResponse.presets:type_name -> agent.v1.Preset
-	4,  // 26: agent.v1.UpsertPresetRequest.preset:type_name -> agent.v1.Preset
-	7,  // 27: agent.v1.ListToolsResponse.tools:type_name -> agent.v1.ToolInfo
-	9,  // 28: agent.v1.GetToolConfigResponse.config:type_name -> agent.v1.ToolConfig
-	95, // 29: agent.v1.SetToolConfigRequest.config:type_name -> google.protobuf.Struct
-	96, // 30: agent.v1.SetExtensionConfigRequest.value:type_name -> google.protobuf.Value
-	13, // 31: agent.v1.UploadFileRequest.file:type_name -> agent.v1.FileRef
-	95, // 32: agent.v1.GetAgentConfigResponse.config:type_name -> google.protobuf.Struct
-	96, // 33: agent.v1.ToolConfig.ValuesEntry.value:type_name -> google.protobuf.Value
-	47, // 34: agent.v1.ListProvidersCatalogResponse.ProvidersEntry.value:type_name -> agent.v1.CatalogProvider
-	96, // 35: agent.v1.CatalogProvider.ModelsEntry.value:type_name -> google.protobuf.Value
-	88, // 36: agent.v1.AgentService.Health:input_type -> agent.v1.HealthRequest
-	14, // 37: agent.v1.AgentService.ListSessions:input_type -> agent.v1.ListSessionsRequest
-	16, // 38: agent.v1.AgentService.CreateSession:input_type -> agent.v1.CreateSessionRequest
-	18, // 39: agent.v1.AgentService.GetSession:input_type -> agent.v1.GetSessionRequest
-	20, // 40: agent.v1.AgentService.DeleteSession:input_type -> agent.v1.DeleteSessionRequest
-	22, // 41: agent.v1.AgentService.ListMessages:input_type -> agent.v1.ListMessagesRequest
-	24, // 42: agent.v1.AgentService.Prompt:input_type -> agent.v1.PromptRequest
-	11, // 43: agent.v1.AgentService.WatchSession:input_type -> agent.v1.WatchSessionRequest
-	25, // 44: agent.v1.AgentService.Fork:input_type -> agent.v1.ForkRequest
-	27, // 45: agent.v1.AgentService.Rename:input_type -> agent.v1.RenameRequest
-	29, // 46: agent.v1.AgentService.SetModel:input_type -> agent.v1.SetModelRequest
-	31, // 47: agent.v1.AgentService.Undo:input_type -> agent.v1.UndoRequest
-	33, // 48: agent.v1.AgentService.State:input_type -> agent.v1.StateRequest
-	35, // 49: agent.v1.AgentService.Mailbox:input_type -> agent.v1.MailboxRequest
-	37, // 50: agent.v1.AgentService.UpdateSettings:input_type -> agent.v1.UpdateSettingsRequest
-	39, // 51: agent.v1.AgentService.Interrupt:input_type -> agent.v1.InterruptRequest
-	41, // 52: agent.v1.AgentService.Compact:input_type -> agent.v1.CompactRequest
-	43, // 53: agent.v1.AgentService.ListProviders:input_type -> agent.v1.ListProvidersRequest
-	45, // 54: agent.v1.AgentService.ListProvidersCatalog:input_type -> agent.v1.ListProvidersCatalogRequest
-	48, // 55: agent.v1.AgentService.RegisterProvider:input_type -> agent.v1.RegisterProviderRequest
-	50, // 56: agent.v1.AgentService.DeleteProvider:input_type -> agent.v1.DeleteProviderRequest
-	52, // 57: agent.v1.AgentService.TestProvider:input_type -> agent.v1.TestProviderRequest
-	54, // 58: agent.v1.AgentService.ListModels:input_type -> agent.v1.ListModelsRequest
-	58, // 59: agent.v1.AgentService.ListPresets:input_type -> agent.v1.ListPresetsRequest
-	60, // 60: agent.v1.AgentService.UpsertPreset:input_type -> agent.v1.UpsertPresetRequest
-	62, // 61: agent.v1.AgentService.DeletePreset:input_type -> agent.v1.DeletePresetRequest
-	64, // 62: agent.v1.AgentService.PreviewPreset:input_type -> agent.v1.PreviewPresetRequest
-	66, // 63: agent.v1.AgentService.GetConfig:input_type -> agent.v1.GetConfigRequest
-	68, // 64: agent.v1.AgentService.SetConfig:input_type -> agent.v1.SetConfigRequest
-	70, // 65: agent.v1.AgentService.ListTools:input_type -> agent.v1.ListToolsRequest
-	72, // 66: agent.v1.AgentService.GetToolConfig:input_type -> agent.v1.GetToolConfigRequest
-	74, // 67: agent.v1.AgentService.SetToolConfig:input_type -> agent.v1.SetToolConfigRequest
-	76, // 68: agent.v1.AgentService.SetExtensionConfig:input_type -> agent.v1.SetExtensionConfigRequest
-	78, // 69: agent.v1.AgentService.UploadFile:input_type -> agent.v1.UploadFileRequest
-	80, // 70: agent.v1.AgentService.IngestFile:input_type -> agent.v1.IngestFileRequest
-	82, // 71: agent.v1.AgentService.GetFile:input_type -> agent.v1.GetFileRequest
-	84, // 72: agent.v1.AgentService.GetFileMeta:input_type -> agent.v1.GetFileMetaRequest
-	86, // 73: agent.v1.AgentService.GetAgentConfig:input_type -> agent.v1.GetAgentConfigRequest
-	89, // 74: agent.v1.AgentService.Health:output_type -> agent.v1.HealthResponse
-	15, // 75: agent.v1.AgentService.ListSessions:output_type -> agent.v1.ListSessionsResponse
-	17, // 76: agent.v1.AgentService.CreateSession:output_type -> agent.v1.CreateSessionResponse
-	19, // 77: agent.v1.AgentService.GetSession:output_type -> agent.v1.GetSessionResponse
-	21, // 78: agent.v1.AgentService.DeleteSession:output_type -> agent.v1.DeleteSessionResponse
-	23, // 79: agent.v1.AgentService.ListMessages:output_type -> agent.v1.ListMessagesResponse
-	10, // 80: agent.v1.AgentService.Prompt:output_type -> agent.v1.PromptResponse
-	12, // 81: agent.v1.AgentService.WatchSession:output_type -> agent.v1.WatchSessionResponse
-	26, // 82: agent.v1.AgentService.Fork:output_type -> agent.v1.ForkResponse
-	28, // 83: agent.v1.AgentService.Rename:output_type -> agent.v1.RenameResponse
-	30, // 84: agent.v1.AgentService.SetModel:output_type -> agent.v1.SetModelResponse
-	32, // 85: agent.v1.AgentService.Undo:output_type -> agent.v1.UndoResponse
-	34, // 86: agent.v1.AgentService.State:output_type -> agent.v1.StateResponse
-	36, // 87: agent.v1.AgentService.Mailbox:output_type -> agent.v1.MailboxResponse
-	38, // 88: agent.v1.AgentService.UpdateSettings:output_type -> agent.v1.UpdateSettingsResponse
-	40, // 89: agent.v1.AgentService.Interrupt:output_type -> agent.v1.InterruptResponse
-	42, // 90: agent.v1.AgentService.Compact:output_type -> agent.v1.CompactResponse
-	44, // 91: agent.v1.AgentService.ListProviders:output_type -> agent.v1.ListProvidersResponse
-	46, // 92: agent.v1.AgentService.ListProvidersCatalog:output_type -> agent.v1.ListProvidersCatalogResponse
-	49, // 93: agent.v1.AgentService.RegisterProvider:output_type -> agent.v1.RegisterProviderResponse
-	51, // 94: agent.v1.AgentService.DeleteProvider:output_type -> agent.v1.DeleteProviderResponse
-	53, // 95: agent.v1.AgentService.TestProvider:output_type -> agent.v1.TestProviderResponse
-	55, // 96: agent.v1.AgentService.ListModels:output_type -> agent.v1.ListModelsResponse
-	59, // 97: agent.v1.AgentService.ListPresets:output_type -> agent.v1.ListPresetsResponse
-	61, // 98: agent.v1.AgentService.UpsertPreset:output_type -> agent.v1.UpsertPresetResponse
-	63, // 99: agent.v1.AgentService.DeletePreset:output_type -> agent.v1.DeletePresetResponse
-	65, // 100: agent.v1.AgentService.PreviewPreset:output_type -> agent.v1.PreviewPresetResponse
-	67, // 101: agent.v1.AgentService.GetConfig:output_type -> agent.v1.GetConfigResponse
-	69, // 102: agent.v1.AgentService.SetConfig:output_type -> agent.v1.SetConfigResponse
-	71, // 103: agent.v1.AgentService.ListTools:output_type -> agent.v1.ListToolsResponse
-	73, // 104: agent.v1.AgentService.GetToolConfig:output_type -> agent.v1.GetToolConfigResponse
-	75, // 105: agent.v1.AgentService.SetToolConfig:output_type -> agent.v1.SetToolConfigResponse
-	77, // 106: agent.v1.AgentService.SetExtensionConfig:output_type -> agent.v1.SetExtensionConfigResponse
-	79, // 107: agent.v1.AgentService.UploadFile:output_type -> agent.v1.UploadFileResponse
-	81, // 108: agent.v1.AgentService.IngestFile:output_type -> agent.v1.IngestFileResponse
-	83, // 109: agent.v1.AgentService.GetFile:output_type -> agent.v1.GetFileResponse
-	85, // 110: agent.v1.AgentService.GetFileMeta:output_type -> agent.v1.GetFileMetaResponse
-	87, // 111: agent.v1.AgentService.GetAgentConfig:output_type -> agent.v1.GetAgentConfigResponse
-	74, // [74:112] is the sub-list for method output_type
-	36, // [36:74] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	6,  // 2: agent.v1.Provider.models:type_name -> agent.v1.ProviderModel
+	95, // 3: agent.v1.ToolInfo.parameters:type_name -> google.protobuf.Struct
+	8,  // 4: agent.v1.ToolInfo.config_fields:type_name -> agent.v1.ToolConfigField
+	96, // 5: agent.v1.ToolConfigField.default:type_name -> google.protobuf.Value
+	91, // 6: agent.v1.ToolConfig.values:type_name -> agent.v1.ToolConfig.ValuesEntry
+	92, // 7: agent.v1.PromptResponse.params:type_name -> agent.v1.PromptResponse.ParamsEntry
+	95, // 8: agent.v1.WatchSessionResponse.params:type_name -> google.protobuf.Struct
+	0,  // 9: agent.v1.ListSessionsResponse.sessions:type_name -> agent.v1.Session
+	0,  // 10: agent.v1.GetSessionResponse.session:type_name -> agent.v1.Session
+	1,  // 11: agent.v1.ListMessagesResponse.messages:type_name -> agent.v1.Message
+	13, // 12: agent.v1.PromptRequest.attachments:type_name -> agent.v1.FileRef
+	0,  // 13: agent.v1.ForkResponse.session:type_name -> agent.v1.Session
+	0,  // 14: agent.v1.RenameResponse.session:type_name -> agent.v1.Session
+	0,  // 15: agent.v1.SetModelResponse.session:type_name -> agent.v1.Session
+	0,  // 16: agent.v1.UndoResponse.session:type_name -> agent.v1.Session
+	95, // 17: agent.v1.StateResponse.state:type_name -> google.protobuf.Struct
+	3,  // 18: agent.v1.MailboxResponse.mailbox:type_name -> agent.v1.MailboxEntry
+	0,  // 19: agent.v1.UpdateSettingsResponse.session:type_name -> agent.v1.Session
+	5,  // 20: agent.v1.ListProvidersResponse.providers:type_name -> agent.v1.Provider
+	93, // 21: agent.v1.ListProvidersCatalogResponse.providers:type_name -> agent.v1.ListProvidersCatalogResponse.ProvidersEntry
+	94, // 22: agent.v1.CatalogProvider.models:type_name -> agent.v1.CatalogProvider.ModelsEntry
+	5,  // 23: agent.v1.RegisterProviderRequest.provider:type_name -> agent.v1.Provider
+	56, // 24: agent.v1.ListModelsResponse.models:type_name -> agent.v1.ModelInfo
+	57, // 25: agent.v1.ModelInfo.variants:type_name -> agent.v1.ModelVariant
+	4,  // 26: agent.v1.ListPresetsResponse.presets:type_name -> agent.v1.Preset
+	4,  // 27: agent.v1.UpsertPresetRequest.preset:type_name -> agent.v1.Preset
+	7,  // 28: agent.v1.ListToolsResponse.tools:type_name -> agent.v1.ToolInfo
+	9,  // 29: agent.v1.GetToolConfigResponse.config:type_name -> agent.v1.ToolConfig
+	95, // 30: agent.v1.SetToolConfigRequest.config:type_name -> google.protobuf.Struct
+	96, // 31: agent.v1.SetExtensionConfigRequest.value:type_name -> google.protobuf.Value
+	13, // 32: agent.v1.UploadFileRequest.file:type_name -> agent.v1.FileRef
+	95, // 33: agent.v1.GetAgentConfigResponse.config:type_name -> google.protobuf.Struct
+	96, // 34: agent.v1.ToolConfig.ValuesEntry.value:type_name -> google.protobuf.Value
+	47, // 35: agent.v1.ListProvidersCatalogResponse.ProvidersEntry.value:type_name -> agent.v1.CatalogProvider
+	96, // 36: agent.v1.CatalogProvider.ModelsEntry.value:type_name -> google.protobuf.Value
+	88, // 37: agent.v1.AgentService.Health:input_type -> agent.v1.HealthRequest
+	14, // 38: agent.v1.AgentService.ListSessions:input_type -> agent.v1.ListSessionsRequest
+	16, // 39: agent.v1.AgentService.CreateSession:input_type -> agent.v1.CreateSessionRequest
+	18, // 40: agent.v1.AgentService.GetSession:input_type -> agent.v1.GetSessionRequest
+	20, // 41: agent.v1.AgentService.DeleteSession:input_type -> agent.v1.DeleteSessionRequest
+	22, // 42: agent.v1.AgentService.ListMessages:input_type -> agent.v1.ListMessagesRequest
+	24, // 43: agent.v1.AgentService.Prompt:input_type -> agent.v1.PromptRequest
+	11, // 44: agent.v1.AgentService.WatchSession:input_type -> agent.v1.WatchSessionRequest
+	25, // 45: agent.v1.AgentService.Fork:input_type -> agent.v1.ForkRequest
+	27, // 46: agent.v1.AgentService.Rename:input_type -> agent.v1.RenameRequest
+	29, // 47: agent.v1.AgentService.SetModel:input_type -> agent.v1.SetModelRequest
+	31, // 48: agent.v1.AgentService.Undo:input_type -> agent.v1.UndoRequest
+	33, // 49: agent.v1.AgentService.State:input_type -> agent.v1.StateRequest
+	35, // 50: agent.v1.AgentService.Mailbox:input_type -> agent.v1.MailboxRequest
+	37, // 51: agent.v1.AgentService.UpdateSettings:input_type -> agent.v1.UpdateSettingsRequest
+	39, // 52: agent.v1.AgentService.Interrupt:input_type -> agent.v1.InterruptRequest
+	41, // 53: agent.v1.AgentService.Compact:input_type -> agent.v1.CompactRequest
+	43, // 54: agent.v1.AgentService.ListProviders:input_type -> agent.v1.ListProvidersRequest
+	45, // 55: agent.v1.AgentService.ListProvidersCatalog:input_type -> agent.v1.ListProvidersCatalogRequest
+	48, // 56: agent.v1.AgentService.RegisterProvider:input_type -> agent.v1.RegisterProviderRequest
+	50, // 57: agent.v1.AgentService.DeleteProvider:input_type -> agent.v1.DeleteProviderRequest
+	52, // 58: agent.v1.AgentService.TestProvider:input_type -> agent.v1.TestProviderRequest
+	54, // 59: agent.v1.AgentService.ListModels:input_type -> agent.v1.ListModelsRequest
+	58, // 60: agent.v1.AgentService.ListPresets:input_type -> agent.v1.ListPresetsRequest
+	60, // 61: agent.v1.AgentService.UpsertPreset:input_type -> agent.v1.UpsertPresetRequest
+	62, // 62: agent.v1.AgentService.DeletePreset:input_type -> agent.v1.DeletePresetRequest
+	64, // 63: agent.v1.AgentService.PreviewPreset:input_type -> agent.v1.PreviewPresetRequest
+	66, // 64: agent.v1.AgentService.GetConfig:input_type -> agent.v1.GetConfigRequest
+	68, // 65: agent.v1.AgentService.SetConfig:input_type -> agent.v1.SetConfigRequest
+	70, // 66: agent.v1.AgentService.ListTools:input_type -> agent.v1.ListToolsRequest
+	72, // 67: agent.v1.AgentService.GetToolConfig:input_type -> agent.v1.GetToolConfigRequest
+	74, // 68: agent.v1.AgentService.SetToolConfig:input_type -> agent.v1.SetToolConfigRequest
+	76, // 69: agent.v1.AgentService.SetExtensionConfig:input_type -> agent.v1.SetExtensionConfigRequest
+	78, // 70: agent.v1.AgentService.UploadFile:input_type -> agent.v1.UploadFileRequest
+	80, // 71: agent.v1.AgentService.IngestFile:input_type -> agent.v1.IngestFileRequest
+	82, // 72: agent.v1.AgentService.GetFile:input_type -> agent.v1.GetFileRequest
+	84, // 73: agent.v1.AgentService.GetFileMeta:input_type -> agent.v1.GetFileMetaRequest
+	86, // 74: agent.v1.AgentService.GetAgentConfig:input_type -> agent.v1.GetAgentConfigRequest
+	89, // 75: agent.v1.AgentService.Health:output_type -> agent.v1.HealthResponse
+	15, // 76: agent.v1.AgentService.ListSessions:output_type -> agent.v1.ListSessionsResponse
+	17, // 77: agent.v1.AgentService.CreateSession:output_type -> agent.v1.CreateSessionResponse
+	19, // 78: agent.v1.AgentService.GetSession:output_type -> agent.v1.GetSessionResponse
+	21, // 79: agent.v1.AgentService.DeleteSession:output_type -> agent.v1.DeleteSessionResponse
+	23, // 80: agent.v1.AgentService.ListMessages:output_type -> agent.v1.ListMessagesResponse
+	10, // 81: agent.v1.AgentService.Prompt:output_type -> agent.v1.PromptResponse
+	12, // 82: agent.v1.AgentService.WatchSession:output_type -> agent.v1.WatchSessionResponse
+	26, // 83: agent.v1.AgentService.Fork:output_type -> agent.v1.ForkResponse
+	28, // 84: agent.v1.AgentService.Rename:output_type -> agent.v1.RenameResponse
+	30, // 85: agent.v1.AgentService.SetModel:output_type -> agent.v1.SetModelResponse
+	32, // 86: agent.v1.AgentService.Undo:output_type -> agent.v1.UndoResponse
+	34, // 87: agent.v1.AgentService.State:output_type -> agent.v1.StateResponse
+	36, // 88: agent.v1.AgentService.Mailbox:output_type -> agent.v1.MailboxResponse
+	38, // 89: agent.v1.AgentService.UpdateSettings:output_type -> agent.v1.UpdateSettingsResponse
+	40, // 90: agent.v1.AgentService.Interrupt:output_type -> agent.v1.InterruptResponse
+	42, // 91: agent.v1.AgentService.Compact:output_type -> agent.v1.CompactResponse
+	44, // 92: agent.v1.AgentService.ListProviders:output_type -> agent.v1.ListProvidersResponse
+	46, // 93: agent.v1.AgentService.ListProvidersCatalog:output_type -> agent.v1.ListProvidersCatalogResponse
+	49, // 94: agent.v1.AgentService.RegisterProvider:output_type -> agent.v1.RegisterProviderResponse
+	51, // 95: agent.v1.AgentService.DeleteProvider:output_type -> agent.v1.DeleteProviderResponse
+	53, // 96: agent.v1.AgentService.TestProvider:output_type -> agent.v1.TestProviderResponse
+	55, // 97: agent.v1.AgentService.ListModels:output_type -> agent.v1.ListModelsResponse
+	59, // 98: agent.v1.AgentService.ListPresets:output_type -> agent.v1.ListPresetsResponse
+	61, // 99: agent.v1.AgentService.UpsertPreset:output_type -> agent.v1.UpsertPresetResponse
+	63, // 100: agent.v1.AgentService.DeletePreset:output_type -> agent.v1.DeletePresetResponse
+	65, // 101: agent.v1.AgentService.PreviewPreset:output_type -> agent.v1.PreviewPresetResponse
+	67, // 102: agent.v1.AgentService.GetConfig:output_type -> agent.v1.GetConfigResponse
+	69, // 103: agent.v1.AgentService.SetConfig:output_type -> agent.v1.SetConfigResponse
+	71, // 104: agent.v1.AgentService.ListTools:output_type -> agent.v1.ListToolsResponse
+	73, // 105: agent.v1.AgentService.GetToolConfig:output_type -> agent.v1.GetToolConfigResponse
+	75, // 106: agent.v1.AgentService.SetToolConfig:output_type -> agent.v1.SetToolConfigResponse
+	77, // 107: agent.v1.AgentService.SetExtensionConfig:output_type -> agent.v1.SetExtensionConfigResponse
+	79, // 108: agent.v1.AgentService.UploadFile:output_type -> agent.v1.UploadFileResponse
+	81, // 109: agent.v1.AgentService.IngestFile:output_type -> agent.v1.IngestFileResponse
+	83, // 110: agent.v1.AgentService.GetFile:output_type -> agent.v1.GetFileResponse
+	85, // 111: agent.v1.AgentService.GetFileMeta:output_type -> agent.v1.GetFileMetaResponse
+	87, // 112: agent.v1.AgentService.GetAgentConfig:output_type -> agent.v1.GetAgentConfigResponse
+	75, // [75:113] is the sub-list for method output_type
+	37, // [37:75] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_agent_v1_agent_proto_init() }
@@ -5581,6 +5607,7 @@ func file_agent_v1_agent_proto_init() {
 	if File_agent_v1_agent_proto != nil {
 		return
 	}
+	file_agent_v1_agent_proto_msgTypes[37].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
