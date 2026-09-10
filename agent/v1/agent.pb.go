@@ -3245,7 +3245,10 @@ type TestProviderRequest struct {
 	ApiKey     string                 `protobuf:"bytes,4,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	Model      string                 `protobuf:"bytes,5,opt,name=model,proto3" json:"model,omitempty"`
 	// Optional reasoning variant id to exercise in the test generation.
-	Variant       string `protobuf:"bytes,6,opt,name=variant,proto3" json:"variant,omitempty"`
+	Variant string `protobuf:"bytes,6,opt,name=variant,proto3" json:"variant,omitempty"`
+	// What the model under test generates: "text" (default). Only text models
+	// are testable today; image/video/speech are rejected with a clear message.
+	Capability    string `protobuf:"bytes,7,opt,name=capability,proto3" json:"capability,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3318,6 +3321,13 @@ func (x *TestProviderRequest) GetModel() string {
 func (x *TestProviderRequest) GetVariant() string {
 	if x != nil {
 		return x.Variant
+	}
+	return ""
+}
+
+func (x *TestProviderRequest) GetCapability() string {
+	if x != nil {
+		return x.Capability
 	}
 	return ""
 }
@@ -5361,7 +5371,7 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\"(\n" +
 	"\x16DeleteProviderResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok\"\xb5\x01\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"\xd5\x01\n" +
 	"\x13TestProviderRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x19\n" +
@@ -5369,7 +5379,10 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\bbase_url\x18\x03 \x01(\tR\abaseUrl\x12\x17\n" +
 	"\aapi_key\x18\x04 \x01(\tR\x06apiKey\x12\x14\n" +
 	"\x05model\x18\x05 \x01(\tR\x05model\x12\x18\n" +
-	"\avariant\x18\x06 \x01(\tR\avariant\">\n" +
+	"\avariant\x18\x06 \x01(\tR\avariant\x12\x1e\n" +
+	"\n" +
+	"capability\x18\a \x01(\tR\n" +
+	"capability\">\n" +
 	"\x14TestProviderResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x16\n" +
 	"\x06result\x18\x02 \x01(\tR\x06result\"4\n" +
