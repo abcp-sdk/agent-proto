@@ -701,10 +701,17 @@ func (x *Provider) GetUpdatedAt() string {
 // tokens) is REQUIRED and user-supplied: it drives compaction budgets, and it
 // is never inferred from an external catalog.
 type ProviderModel struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	ContextLimit  int64                  `protobuf:"varint,3,opt,name=context_limit,json=contextLimit,proto3" json:"context_limit,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Context window (tokens). REQUIRED (> 0) for text models (drives
+	// compaction budgets); ignored for generation models (image/video/speech).
+	ContextLimit int64 `protobuf:"varint,3,opt,name=context_limit,json=contextLimit,proto3" json:"context_limit,omitempty"`
+	// What the model generates: "text" (default, chat/vision), "image",
+	// "video", or "speech". Text models feed sessions; generation models are
+	// resolved by tools (image-generate / image-edit / video-generate /
+	// tts-generate) via the same provider registry.
+	Capability    string `protobuf:"bytes,4,opt,name=capability,proto3" json:"capability,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -758,6 +765,13 @@ func (x *ProviderModel) GetContextLimit() int64 {
 		return x.ContextLimit
 	}
 	return 0
+}
+
+func (x *ProviderModel) GetCapability() string {
+	if x != nil {
+		return x.Capability
+	}
+	return ""
 }
 
 // Tool discovery entry.
@@ -5178,11 +5192,14 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"updated_at\x18\a \x01(\tR\tupdatedAt\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"X\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"x\n" +
 	"\rProviderModel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
-	"\rcontext_limit\x18\x03 \x01(\x03R\fcontextLimit\"\xfe\x01\n" +
+	"\rcontext_limit\x18\x03 \x01(\x03R\fcontextLimit\x12\x1e\n" +
+	"\n" +
+	"capability\x18\x04 \x01(\tR\n" +
+	"capability\"\xfe\x01\n" +
 	"\bToolInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
