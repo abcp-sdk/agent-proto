@@ -57,6 +57,9 @@ const (
 	// AgentServiceWatchSessionProcedure is the fully-qualified name of the AgentService's WatchSession
 	// RPC.
 	AgentServiceWatchSessionProcedure = "/agent.v1.AgentService/WatchSession"
+	// AgentServiceWatchSessionsProcedure is the fully-qualified name of the AgentService's
+	// WatchSessions RPC.
+	AgentServiceWatchSessionsProcedure = "/agent.v1.AgentService/WatchSessions"
 	// AgentServiceForkProcedure is the fully-qualified name of the AgentService's Fork RPC.
 	AgentServiceForkProcedure = "/agent.v1.AgentService/Fork"
 	// AgentServiceRenameProcedure is the fully-qualified name of the AgentService's Rename RPC.
@@ -144,6 +147,7 @@ type AgentServiceClient interface {
 	ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error)
 	Prompt(context.Context, *connect.Request[v1.PromptRequest]) (*connect.ServerStreamForClient[v1.PromptResponse], error)
 	WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest]) (*connect.ServerStreamForClient[v1.WatchSessionResponse], error)
+	WatchSessions(context.Context, *connect.Request[v1.WatchSessionsRequest]) (*connect.ServerStreamForClient[v1.WatchSessionsResponse], error)
 	Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error)
 	Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error)
 	SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error)
@@ -233,6 +237,12 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			httpClient,
 			baseURL+AgentServiceWatchSessionProcedure,
 			connect.WithSchema(agentServiceMethods.ByName("WatchSession")),
+			connect.WithClientOptions(opts...),
+		),
+		watchSessions: connect.NewClient[v1.WatchSessionsRequest, v1.WatchSessionsResponse](
+			httpClient,
+			baseURL+AgentServiceWatchSessionsProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("WatchSessions")),
 			connect.WithClientOptions(opts...),
 		),
 		fork: connect.NewClient[v1.ForkRequest, v1.ForkResponse](
@@ -428,6 +438,7 @@ type agentServiceClient struct {
 	listMessages         *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
 	prompt               *connect.Client[v1.PromptRequest, v1.PromptResponse]
 	watchSession         *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
+	watchSessions        *connect.Client[v1.WatchSessionsRequest, v1.WatchSessionsResponse]
 	fork                 *connect.Client[v1.ForkRequest, v1.ForkResponse]
 	rename               *connect.Client[v1.RenameRequest, v1.RenameResponse]
 	setModel             *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
@@ -498,6 +509,11 @@ func (c *agentServiceClient) Prompt(ctx context.Context, req *connect.Request[v1
 // WatchSession calls agent.v1.AgentService.WatchSession.
 func (c *agentServiceClient) WatchSession(ctx context.Context, req *connect.Request[v1.WatchSessionRequest]) (*connect.ServerStreamForClient[v1.WatchSessionResponse], error) {
 	return c.watchSession.CallServerStream(ctx, req)
+}
+
+// WatchSessions calls agent.v1.AgentService.WatchSessions.
+func (c *agentServiceClient) WatchSessions(ctx context.Context, req *connect.Request[v1.WatchSessionsRequest]) (*connect.ServerStreamForClient[v1.WatchSessionsResponse], error) {
+	return c.watchSessions.CallServerStream(ctx, req)
 }
 
 // Fork calls agent.v1.AgentService.Fork.
@@ -660,6 +676,7 @@ type AgentServiceHandler interface {
 	ListMessages(context.Context, *connect.Request[v1.ListMessagesRequest]) (*connect.Response[v1.ListMessagesResponse], error)
 	Prompt(context.Context, *connect.Request[v1.PromptRequest], *connect.ServerStream[v1.PromptResponse]) error
 	WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest], *connect.ServerStream[v1.WatchSessionResponse]) error
+	WatchSessions(context.Context, *connect.Request[v1.WatchSessionsRequest], *connect.ServerStream[v1.WatchSessionsResponse]) error
 	Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error)
 	Rename(context.Context, *connect.Request[v1.RenameRequest]) (*connect.Response[v1.RenameResponse], error)
 	SetModel(context.Context, *connect.Request[v1.SetModelRequest]) (*connect.Response[v1.SetModelResponse], error)
@@ -745,6 +762,12 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		AgentServiceWatchSessionProcedure,
 		svc.WatchSession,
 		connect.WithSchema(agentServiceMethods.ByName("WatchSession")),
+		connect.WithHandlerOptions(opts...),
+	)
+	agentServiceWatchSessionsHandler := connect.NewServerStreamHandler(
+		AgentServiceWatchSessionsProcedure,
+		svc.WatchSessions,
+		connect.WithSchema(agentServiceMethods.ByName("WatchSessions")),
 		connect.WithHandlerOptions(opts...),
 	)
 	agentServiceForkHandler := connect.NewUnaryHandler(
@@ -945,6 +968,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServicePromptHandler.ServeHTTP(w, r)
 		case AgentServiceWatchSessionProcedure:
 			agentServiceWatchSessionHandler.ServeHTTP(w, r)
+		case AgentServiceWatchSessionsProcedure:
+			agentServiceWatchSessionsHandler.ServeHTTP(w, r)
 		case AgentServiceForkProcedure:
 			agentServiceForkHandler.ServeHTTP(w, r)
 		case AgentServiceRenameProcedure:
@@ -1044,6 +1069,10 @@ func (UnimplementedAgentServiceHandler) Prompt(context.Context, *connect.Request
 
 func (UnimplementedAgentServiceHandler) WatchSession(context.Context, *connect.Request[v1.WatchSessionRequest], *connect.ServerStream[v1.WatchSessionResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.WatchSession is not implemented"))
+}
+
+func (UnimplementedAgentServiceHandler) WatchSessions(context.Context, *connect.Request[v1.WatchSessionsRequest], *connect.ServerStream[v1.WatchSessionsResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.WatchSessions is not implemented"))
 }
 
 func (UnimplementedAgentServiceHandler) Fork(context.Context, *connect.Request[v1.ForkRequest]) (*connect.Response[v1.ForkResponse], error) {
