@@ -26,6 +26,8 @@ const _ = connect.IsAtLeastVersion1_13_0
 const (
 	// AgentServiceName is the fully-qualified name of the AgentService service.
 	AgentServiceName = "agent.v1.AgentService"
+	// AdminServiceName is the fully-qualified name of the AdminService service.
+	AdminServiceName = "agent.v1.AdminService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -88,6 +90,9 @@ const (
 	// AgentServiceRegisterProviderProcedure is the fully-qualified name of the AgentService's
 	// RegisterProvider RPC.
 	AgentServiceRegisterProviderProcedure = "/agent.v1.AgentService/RegisterProvider"
+	// AgentServiceDiscoverGatewayModelsProcedure is the fully-qualified name of the AgentService's
+	// DiscoverGatewayModels RPC.
+	AgentServiceDiscoverGatewayModelsProcedure = "/agent.v1.AgentService/DiscoverGatewayModels"
 	// AgentServiceDeleteProviderProcedure is the fully-qualified name of the AgentService's
 	// DeleteProvider RPC.
 	AgentServiceDeleteProviderProcedure = "/agent.v1.AgentService/DeleteProvider"
@@ -135,6 +140,30 @@ const (
 	// AgentServiceGetAgentConfigProcedure is the fully-qualified name of the AgentService's
 	// GetAgentConfig RPC.
 	AgentServiceGetAgentConfigProcedure = "/agent.v1.AgentService/GetAgentConfig"
+	// AdminServiceListTenantsProcedure is the fully-qualified name of the AdminService's ListTenants
+	// RPC.
+	AdminServiceListTenantsProcedure = "/agent.v1.AdminService/ListTenants"
+	// AdminServiceCreateTenantProcedure is the fully-qualified name of the AdminService's CreateTenant
+	// RPC.
+	AdminServiceCreateTenantProcedure = "/agent.v1.AdminService/CreateTenant"
+	// AdminServiceUpdateTenantProcedure is the fully-qualified name of the AdminService's UpdateTenant
+	// RPC.
+	AdminServiceUpdateTenantProcedure = "/agent.v1.AdminService/UpdateTenant"
+	// AdminServiceDeleteTenantProcedure is the fully-qualified name of the AdminService's DeleteTenant
+	// RPC.
+	AdminServiceDeleteTenantProcedure = "/agent.v1.AdminService/DeleteTenant"
+	// AdminServiceIssueTenantTokenProcedure is the fully-qualified name of the AdminService's
+	// IssueTenantToken RPC.
+	AdminServiceIssueTenantTokenProcedure = "/agent.v1.AdminService/IssueTenantToken"
+	// AdminServiceListTenantTokensProcedure is the fully-qualified name of the AdminService's
+	// ListTenantTokens RPC.
+	AdminServiceListTenantTokensProcedure = "/agent.v1.AdminService/ListTenantTokens"
+	// AdminServiceRevokeTenantTokenProcedure is the fully-qualified name of the AdminService's
+	// RevokeTenantToken RPC.
+	AdminServiceRevokeTenantTokenProcedure = "/agent.v1.AdminService/RevokeTenantToken"
+	// AdminServiceRotateTenantTokenProcedure is the fully-qualified name of the AdminService's
+	// RotateTenantToken RPC.
+	AdminServiceRotateTenantTokenProcedure = "/agent.v1.AdminService/RotateTenantToken"
 )
 
 // AgentServiceClient is a client for the agent.v1.AgentService service.
@@ -160,6 +189,7 @@ type AgentServiceClient interface {
 	ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error)
 	ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error)
 	RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error)
+	DiscoverGatewayModels(context.Context, *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error)
 	DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error)
 	TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error)
 	ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error)
@@ -317,6 +347,12 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(agentServiceMethods.ByName("RegisterProvider")),
 			connect.WithClientOptions(opts...),
 		),
+		discoverGatewayModels: connect.NewClient[v1.DiscoverGatewayModelsRequest, v1.DiscoverGatewayModelsResponse](
+			httpClient,
+			baseURL+AgentServiceDiscoverGatewayModelsProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("DiscoverGatewayModels")),
+			connect.WithClientOptions(opts...),
+		),
 		deleteProvider: connect.NewClient[v1.DeleteProviderRequest, v1.DeleteProviderResponse](
 			httpClient,
 			baseURL+AgentServiceDeleteProviderProcedure,
@@ -430,45 +466,46 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // agentServiceClient implements AgentServiceClient.
 type agentServiceClient struct {
-	health               *connect.Client[v1.HealthRequest, v1.HealthResponse]
-	listSessions         *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
-	createSession        *connect.Client[v1.CreateSessionRequest, v1.CreateSessionResponse]
-	getSession           *connect.Client[v1.GetSessionRequest, v1.GetSessionResponse]
-	deleteSession        *connect.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
-	listMessages         *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
-	prompt               *connect.Client[v1.PromptRequest, v1.PromptResponse]
-	watchSession         *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
-	watchSessions        *connect.Client[v1.WatchSessionsRequest, v1.WatchSessionsResponse]
-	fork                 *connect.Client[v1.ForkRequest, v1.ForkResponse]
-	rename               *connect.Client[v1.RenameRequest, v1.RenameResponse]
-	setModel             *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
-	undo                 *connect.Client[v1.UndoRequest, v1.UndoResponse]
-	state                *connect.Client[v1.StateRequest, v1.StateResponse]
-	mailbox              *connect.Client[v1.MailboxRequest, v1.MailboxResponse]
-	updateSettings       *connect.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
-	interrupt            *connect.Client[v1.InterruptRequest, v1.InterruptResponse]
-	compact              *connect.Client[v1.CompactRequest, v1.CompactResponse]
-	listProviders        *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
-	listProvidersCatalog *connect.Client[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse]
-	registerProvider     *connect.Client[v1.RegisterProviderRequest, v1.RegisterProviderResponse]
-	deleteProvider       *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
-	testProvider         *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
-	listModels           *connect.Client[v1.ListModelsRequest, v1.ListModelsResponse]
-	listPresets          *connect.Client[v1.ListPresetsRequest, v1.ListPresetsResponse]
-	upsertPreset         *connect.Client[v1.UpsertPresetRequest, v1.UpsertPresetResponse]
-	deletePreset         *connect.Client[v1.DeletePresetRequest, v1.DeletePresetResponse]
-	previewPreset        *connect.Client[v1.PreviewPresetRequest, v1.PreviewPresetResponse]
-	getConfig            *connect.Client[v1.GetConfigRequest, v1.GetConfigResponse]
-	setConfig            *connect.Client[v1.SetConfigRequest, v1.SetConfigResponse]
-	listTools            *connect.Client[v1.ListToolsRequest, v1.ListToolsResponse]
-	getToolConfig        *connect.Client[v1.GetToolConfigRequest, v1.GetToolConfigResponse]
-	setToolConfig        *connect.Client[v1.SetToolConfigRequest, v1.SetToolConfigResponse]
-	setExtensionConfig   *connect.Client[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse]
-	uploadFile           *connect.Client[v1.UploadFileRequest, v1.UploadFileResponse]
-	ingestFile           *connect.Client[v1.IngestFileRequest, v1.IngestFileResponse]
-	getFile              *connect.Client[v1.GetFileRequest, v1.GetFileResponse]
-	getFileMeta          *connect.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
-	getAgentConfig       *connect.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
+	health                *connect.Client[v1.HealthRequest, v1.HealthResponse]
+	listSessions          *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
+	createSession         *connect.Client[v1.CreateSessionRequest, v1.CreateSessionResponse]
+	getSession            *connect.Client[v1.GetSessionRequest, v1.GetSessionResponse]
+	deleteSession         *connect.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
+	listMessages          *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
+	prompt                *connect.Client[v1.PromptRequest, v1.PromptResponse]
+	watchSession          *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
+	watchSessions         *connect.Client[v1.WatchSessionsRequest, v1.WatchSessionsResponse]
+	fork                  *connect.Client[v1.ForkRequest, v1.ForkResponse]
+	rename                *connect.Client[v1.RenameRequest, v1.RenameResponse]
+	setModel              *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
+	undo                  *connect.Client[v1.UndoRequest, v1.UndoResponse]
+	state                 *connect.Client[v1.StateRequest, v1.StateResponse]
+	mailbox               *connect.Client[v1.MailboxRequest, v1.MailboxResponse]
+	updateSettings        *connect.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
+	interrupt             *connect.Client[v1.InterruptRequest, v1.InterruptResponse]
+	compact               *connect.Client[v1.CompactRequest, v1.CompactResponse]
+	listProviders         *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
+	listProvidersCatalog  *connect.Client[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse]
+	registerProvider      *connect.Client[v1.RegisterProviderRequest, v1.RegisterProviderResponse]
+	discoverGatewayModels *connect.Client[v1.DiscoverGatewayModelsRequest, v1.DiscoverGatewayModelsResponse]
+	deleteProvider        *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
+	testProvider          *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
+	listModels            *connect.Client[v1.ListModelsRequest, v1.ListModelsResponse]
+	listPresets           *connect.Client[v1.ListPresetsRequest, v1.ListPresetsResponse]
+	upsertPreset          *connect.Client[v1.UpsertPresetRequest, v1.UpsertPresetResponse]
+	deletePreset          *connect.Client[v1.DeletePresetRequest, v1.DeletePresetResponse]
+	previewPreset         *connect.Client[v1.PreviewPresetRequest, v1.PreviewPresetResponse]
+	getConfig             *connect.Client[v1.GetConfigRequest, v1.GetConfigResponse]
+	setConfig             *connect.Client[v1.SetConfigRequest, v1.SetConfigResponse]
+	listTools             *connect.Client[v1.ListToolsRequest, v1.ListToolsResponse]
+	getToolConfig         *connect.Client[v1.GetToolConfigRequest, v1.GetToolConfigResponse]
+	setToolConfig         *connect.Client[v1.SetToolConfigRequest, v1.SetToolConfigResponse]
+	setExtensionConfig    *connect.Client[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse]
+	uploadFile            *connect.Client[v1.UploadFileRequest, v1.UploadFileResponse]
+	ingestFile            *connect.Client[v1.IngestFileRequest, v1.IngestFileResponse]
+	getFile               *connect.Client[v1.GetFileRequest, v1.GetFileResponse]
+	getFileMeta           *connect.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
+	getAgentConfig        *connect.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
 }
 
 // Health calls agent.v1.AgentService.Health.
@@ -574,6 +611,11 @@ func (c *agentServiceClient) ListProvidersCatalog(ctx context.Context, req *conn
 // RegisterProvider calls agent.v1.AgentService.RegisterProvider.
 func (c *agentServiceClient) RegisterProvider(ctx context.Context, req *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error) {
 	return c.registerProvider.CallUnary(ctx, req)
+}
+
+// DiscoverGatewayModels calls agent.v1.AgentService.DiscoverGatewayModels.
+func (c *agentServiceClient) DiscoverGatewayModels(ctx context.Context, req *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error) {
+	return c.discoverGatewayModels.CallUnary(ctx, req)
 }
 
 // DeleteProvider calls agent.v1.AgentService.DeleteProvider.
@@ -689,6 +731,7 @@ type AgentServiceHandler interface {
 	ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error)
 	ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error)
 	RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error)
+	DiscoverGatewayModels(context.Context, *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error)
 	DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error)
 	TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error)
 	ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error)
@@ -840,6 +883,12 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		AgentServiceRegisterProviderProcedure,
 		svc.RegisterProvider,
 		connect.WithSchema(agentServiceMethods.ByName("RegisterProvider")),
+		connect.WithHandlerOptions(opts...),
+	)
+	agentServiceDiscoverGatewayModelsHandler := connect.NewUnaryHandler(
+		AgentServiceDiscoverGatewayModelsProcedure,
+		svc.DiscoverGatewayModels,
+		connect.WithSchema(agentServiceMethods.ByName("DiscoverGatewayModels")),
 		connect.WithHandlerOptions(opts...),
 	)
 	agentServiceDeleteProviderHandler := connect.NewUnaryHandler(
@@ -994,6 +1043,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceListProvidersCatalogHandler.ServeHTTP(w, r)
 		case AgentServiceRegisterProviderProcedure:
 			agentServiceRegisterProviderHandler.ServeHTTP(w, r)
+		case AgentServiceDiscoverGatewayModelsProcedure:
+			agentServiceDiscoverGatewayModelsHandler.ServeHTTP(w, r)
 		case AgentServiceDeleteProviderProcedure:
 			agentServiceDeleteProviderHandler.ServeHTTP(w, r)
 		case AgentServiceTestProviderProcedure:
@@ -1123,6 +1174,10 @@ func (UnimplementedAgentServiceHandler) RegisterProvider(context.Context, *conne
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.RegisterProvider is not implemented"))
 }
 
+func (UnimplementedAgentServiceHandler) DiscoverGatewayModels(context.Context, *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DiscoverGatewayModels is not implemented"))
+}
+
 func (UnimplementedAgentServiceHandler) DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DeleteProvider is not implemented"))
 }
@@ -1193,4 +1248,256 @@ func (UnimplementedAgentServiceHandler) GetFileMeta(context.Context, *connect.Re
 
 func (UnimplementedAgentServiceHandler) GetAgentConfig(context.Context, *connect.Request[v1.GetAgentConfigRequest]) (*connect.Response[v1.GetAgentConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.GetAgentConfig is not implemented"))
+}
+
+// AdminServiceClient is a client for the agent.v1.AdminService service.
+type AdminServiceClient interface {
+	ListTenants(context.Context, *connect.Request[v1.ListTenantsRequest]) (*connect.Response[v1.ListTenantsResponse], error)
+	CreateTenant(context.Context, *connect.Request[v1.CreateTenantRequest]) (*connect.Response[v1.CreateTenantResponse], error)
+	UpdateTenant(context.Context, *connect.Request[v1.UpdateTenantRequest]) (*connect.Response[v1.UpdateTenantResponse], error)
+	DeleteTenant(context.Context, *connect.Request[v1.DeleteTenantRequest]) (*connect.Response[v1.DeleteTenantResponse], error)
+	IssueTenantToken(context.Context, *connect.Request[v1.IssueTenantTokenRequest]) (*connect.Response[v1.IssueTenantTokenResponse], error)
+	ListTenantTokens(context.Context, *connect.Request[v1.ListTenantTokensRequest]) (*connect.Response[v1.ListTenantTokensResponse], error)
+	RevokeTenantToken(context.Context, *connect.Request[v1.RevokeTenantTokenRequest]) (*connect.Response[v1.RevokeTenantTokenResponse], error)
+	RotateTenantToken(context.Context, *connect.Request[v1.RotateTenantTokenRequest]) (*connect.Response[v1.RotateTenantTokenResponse], error)
+}
+
+// NewAdminServiceClient constructs a client for the agent.v1.AdminService service. By default, it
+// uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
+// uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
+// connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AdminServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	adminServiceMethods := v1.File_agent_v1_agent_proto.Services().ByName("AdminService").Methods()
+	return &adminServiceClient{
+		listTenants: connect.NewClient[v1.ListTenantsRequest, v1.ListTenantsResponse](
+			httpClient,
+			baseURL+AdminServiceListTenantsProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("ListTenants")),
+			connect.WithClientOptions(opts...),
+		),
+		createTenant: connect.NewClient[v1.CreateTenantRequest, v1.CreateTenantResponse](
+			httpClient,
+			baseURL+AdminServiceCreateTenantProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("CreateTenant")),
+			connect.WithClientOptions(opts...),
+		),
+		updateTenant: connect.NewClient[v1.UpdateTenantRequest, v1.UpdateTenantResponse](
+			httpClient,
+			baseURL+AdminServiceUpdateTenantProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("UpdateTenant")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteTenant: connect.NewClient[v1.DeleteTenantRequest, v1.DeleteTenantResponse](
+			httpClient,
+			baseURL+AdminServiceDeleteTenantProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("DeleteTenant")),
+			connect.WithClientOptions(opts...),
+		),
+		issueTenantToken: connect.NewClient[v1.IssueTenantTokenRequest, v1.IssueTenantTokenResponse](
+			httpClient,
+			baseURL+AdminServiceIssueTenantTokenProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("IssueTenantToken")),
+			connect.WithClientOptions(opts...),
+		),
+		listTenantTokens: connect.NewClient[v1.ListTenantTokensRequest, v1.ListTenantTokensResponse](
+			httpClient,
+			baseURL+AdminServiceListTenantTokensProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("ListTenantTokens")),
+			connect.WithClientOptions(opts...),
+		),
+		revokeTenantToken: connect.NewClient[v1.RevokeTenantTokenRequest, v1.RevokeTenantTokenResponse](
+			httpClient,
+			baseURL+AdminServiceRevokeTenantTokenProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("RevokeTenantToken")),
+			connect.WithClientOptions(opts...),
+		),
+		rotateTenantToken: connect.NewClient[v1.RotateTenantTokenRequest, v1.RotateTenantTokenResponse](
+			httpClient,
+			baseURL+AdminServiceRotateTenantTokenProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("RotateTenantToken")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// adminServiceClient implements AdminServiceClient.
+type adminServiceClient struct {
+	listTenants       *connect.Client[v1.ListTenantsRequest, v1.ListTenantsResponse]
+	createTenant      *connect.Client[v1.CreateTenantRequest, v1.CreateTenantResponse]
+	updateTenant      *connect.Client[v1.UpdateTenantRequest, v1.UpdateTenantResponse]
+	deleteTenant      *connect.Client[v1.DeleteTenantRequest, v1.DeleteTenantResponse]
+	issueTenantToken  *connect.Client[v1.IssueTenantTokenRequest, v1.IssueTenantTokenResponse]
+	listTenantTokens  *connect.Client[v1.ListTenantTokensRequest, v1.ListTenantTokensResponse]
+	revokeTenantToken *connect.Client[v1.RevokeTenantTokenRequest, v1.RevokeTenantTokenResponse]
+	rotateTenantToken *connect.Client[v1.RotateTenantTokenRequest, v1.RotateTenantTokenResponse]
+}
+
+// ListTenants calls agent.v1.AdminService.ListTenants.
+func (c *adminServiceClient) ListTenants(ctx context.Context, req *connect.Request[v1.ListTenantsRequest]) (*connect.Response[v1.ListTenantsResponse], error) {
+	return c.listTenants.CallUnary(ctx, req)
+}
+
+// CreateTenant calls agent.v1.AdminService.CreateTenant.
+func (c *adminServiceClient) CreateTenant(ctx context.Context, req *connect.Request[v1.CreateTenantRequest]) (*connect.Response[v1.CreateTenantResponse], error) {
+	return c.createTenant.CallUnary(ctx, req)
+}
+
+// UpdateTenant calls agent.v1.AdminService.UpdateTenant.
+func (c *adminServiceClient) UpdateTenant(ctx context.Context, req *connect.Request[v1.UpdateTenantRequest]) (*connect.Response[v1.UpdateTenantResponse], error) {
+	return c.updateTenant.CallUnary(ctx, req)
+}
+
+// DeleteTenant calls agent.v1.AdminService.DeleteTenant.
+func (c *adminServiceClient) DeleteTenant(ctx context.Context, req *connect.Request[v1.DeleteTenantRequest]) (*connect.Response[v1.DeleteTenantResponse], error) {
+	return c.deleteTenant.CallUnary(ctx, req)
+}
+
+// IssueTenantToken calls agent.v1.AdminService.IssueTenantToken.
+func (c *adminServiceClient) IssueTenantToken(ctx context.Context, req *connect.Request[v1.IssueTenantTokenRequest]) (*connect.Response[v1.IssueTenantTokenResponse], error) {
+	return c.issueTenantToken.CallUnary(ctx, req)
+}
+
+// ListTenantTokens calls agent.v1.AdminService.ListTenantTokens.
+func (c *adminServiceClient) ListTenantTokens(ctx context.Context, req *connect.Request[v1.ListTenantTokensRequest]) (*connect.Response[v1.ListTenantTokensResponse], error) {
+	return c.listTenantTokens.CallUnary(ctx, req)
+}
+
+// RevokeTenantToken calls agent.v1.AdminService.RevokeTenantToken.
+func (c *adminServiceClient) RevokeTenantToken(ctx context.Context, req *connect.Request[v1.RevokeTenantTokenRequest]) (*connect.Response[v1.RevokeTenantTokenResponse], error) {
+	return c.revokeTenantToken.CallUnary(ctx, req)
+}
+
+// RotateTenantToken calls agent.v1.AdminService.RotateTenantToken.
+func (c *adminServiceClient) RotateTenantToken(ctx context.Context, req *connect.Request[v1.RotateTenantTokenRequest]) (*connect.Response[v1.RotateTenantTokenResponse], error) {
+	return c.rotateTenantToken.CallUnary(ctx, req)
+}
+
+// AdminServiceHandler is an implementation of the agent.v1.AdminService service.
+type AdminServiceHandler interface {
+	ListTenants(context.Context, *connect.Request[v1.ListTenantsRequest]) (*connect.Response[v1.ListTenantsResponse], error)
+	CreateTenant(context.Context, *connect.Request[v1.CreateTenantRequest]) (*connect.Response[v1.CreateTenantResponse], error)
+	UpdateTenant(context.Context, *connect.Request[v1.UpdateTenantRequest]) (*connect.Response[v1.UpdateTenantResponse], error)
+	DeleteTenant(context.Context, *connect.Request[v1.DeleteTenantRequest]) (*connect.Response[v1.DeleteTenantResponse], error)
+	IssueTenantToken(context.Context, *connect.Request[v1.IssueTenantTokenRequest]) (*connect.Response[v1.IssueTenantTokenResponse], error)
+	ListTenantTokens(context.Context, *connect.Request[v1.ListTenantTokensRequest]) (*connect.Response[v1.ListTenantTokensResponse], error)
+	RevokeTenantToken(context.Context, *connect.Request[v1.RevokeTenantTokenRequest]) (*connect.Response[v1.RevokeTenantTokenResponse], error)
+	RotateTenantToken(context.Context, *connect.Request[v1.RotateTenantTokenRequest]) (*connect.Response[v1.RotateTenantTokenResponse], error)
+}
+
+// NewAdminServiceHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	adminServiceMethods := v1.File_agent_v1_agent_proto.Services().ByName("AdminService").Methods()
+	adminServiceListTenantsHandler := connect.NewUnaryHandler(
+		AdminServiceListTenantsProcedure,
+		svc.ListTenants,
+		connect.WithSchema(adminServiceMethods.ByName("ListTenants")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceCreateTenantHandler := connect.NewUnaryHandler(
+		AdminServiceCreateTenantProcedure,
+		svc.CreateTenant,
+		connect.WithSchema(adminServiceMethods.ByName("CreateTenant")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceUpdateTenantHandler := connect.NewUnaryHandler(
+		AdminServiceUpdateTenantProcedure,
+		svc.UpdateTenant,
+		connect.WithSchema(adminServiceMethods.ByName("UpdateTenant")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceDeleteTenantHandler := connect.NewUnaryHandler(
+		AdminServiceDeleteTenantProcedure,
+		svc.DeleteTenant,
+		connect.WithSchema(adminServiceMethods.ByName("DeleteTenant")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceIssueTenantTokenHandler := connect.NewUnaryHandler(
+		AdminServiceIssueTenantTokenProcedure,
+		svc.IssueTenantToken,
+		connect.WithSchema(adminServiceMethods.ByName("IssueTenantToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceListTenantTokensHandler := connect.NewUnaryHandler(
+		AdminServiceListTenantTokensProcedure,
+		svc.ListTenantTokens,
+		connect.WithSchema(adminServiceMethods.ByName("ListTenantTokens")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceRevokeTenantTokenHandler := connect.NewUnaryHandler(
+		AdminServiceRevokeTenantTokenProcedure,
+		svc.RevokeTenantToken,
+		connect.WithSchema(adminServiceMethods.ByName("RevokeTenantToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceRotateTenantTokenHandler := connect.NewUnaryHandler(
+		AdminServiceRotateTenantTokenProcedure,
+		svc.RotateTenantToken,
+		connect.WithSchema(adminServiceMethods.ByName("RotateTenantToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/agent.v1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case AdminServiceListTenantsProcedure:
+			adminServiceListTenantsHandler.ServeHTTP(w, r)
+		case AdminServiceCreateTenantProcedure:
+			adminServiceCreateTenantHandler.ServeHTTP(w, r)
+		case AdminServiceUpdateTenantProcedure:
+			adminServiceUpdateTenantHandler.ServeHTTP(w, r)
+		case AdminServiceDeleteTenantProcedure:
+			adminServiceDeleteTenantHandler.ServeHTTP(w, r)
+		case AdminServiceIssueTenantTokenProcedure:
+			adminServiceIssueTenantTokenHandler.ServeHTTP(w, r)
+		case AdminServiceListTenantTokensProcedure:
+			adminServiceListTenantTokensHandler.ServeHTTP(w, r)
+		case AdminServiceRevokeTenantTokenProcedure:
+			adminServiceRevokeTenantTokenHandler.ServeHTTP(w, r)
+		case AdminServiceRotateTenantTokenProcedure:
+			adminServiceRotateTenantTokenHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedAdminServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedAdminServiceHandler struct{}
+
+func (UnimplementedAdminServiceHandler) ListTenants(context.Context, *connect.Request[v1.ListTenantsRequest]) (*connect.Response[v1.ListTenantsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.ListTenants is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) CreateTenant(context.Context, *connect.Request[v1.CreateTenantRequest]) (*connect.Response[v1.CreateTenantResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.CreateTenant is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) UpdateTenant(context.Context, *connect.Request[v1.UpdateTenantRequest]) (*connect.Response[v1.UpdateTenantResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.UpdateTenant is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) DeleteTenant(context.Context, *connect.Request[v1.DeleteTenantRequest]) (*connect.Response[v1.DeleteTenantResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.DeleteTenant is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) IssueTenantToken(context.Context, *connect.Request[v1.IssueTenantTokenRequest]) (*connect.Response[v1.IssueTenantTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.IssueTenantToken is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) ListTenantTokens(context.Context, *connect.Request[v1.ListTenantTokensRequest]) (*connect.Response[v1.ListTenantTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.ListTenantTokens is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) RevokeTenantToken(context.Context, *connect.Request[v1.RevokeTenantTokenRequest]) (*connect.Response[v1.RevokeTenantTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.RevokeTenantToken is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) RotateTenantToken(context.Context, *connect.Request[v1.RotateTenantTokenRequest]) (*connect.Response[v1.RotateTenantTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AdminService.RotateTenantToken is not implemented"))
 }
