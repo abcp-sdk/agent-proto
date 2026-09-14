@@ -60,7 +60,12 @@ type Session struct {
 	// (user/assistant/event/compaction). Clients derive the unread count as the
 	// number of messages with seq greater than their locally-persisted read
 	// watermark (read state is client-local; the agent never stores it).
-	MessageSeq    int32 `protobuf:"varint,23,opt,name=message_seq,json=messageSeq,proto3" json:"message_seq,omitempty"`
+	MessageSeq int32 `protobuf:"varint,23,opt,name=message_seq,json=messageSeq,proto3" json:"message_seq,omitempty"`
+	// Generic grouping key for a session (free-form, tenant-scoped). Empty =
+	// ungrouped. A subsession records its parent's session name here, but the
+	// field is deliberately generic: any client may group sessions arbitrarily
+	// (project, workspace, task…). Not validated against an enum.
+	Group         string `protobuf:"bytes,24,opt,name=group,proto3" json:"group,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -254,6 +259,13 @@ func (x *Session) GetMessageSeq() int32 {
 		return x.MessageSeq
 	}
 	return 0
+}
+
+func (x *Session) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
 }
 
 // Message row (bare).
@@ -1435,7 +1447,10 @@ type CreateSessionRequest struct {
 	Repo   string `protobuf:"bytes,5,opt,name=repo,proto3" json:"repo,omitempty"`
 	Branch string `protobuf:"bytes,6,opt,name=branch,proto3" json:"branch,omitempty"`
 	// Optional reasoning variant id (see ModelInfo.variants).
-	Variant       string `protobuf:"bytes,7,opt,name=variant,proto3" json:"variant,omitempty"`
+	Variant string `protobuf:"bytes,7,opt,name=variant,proto3" json:"variant,omitempty"`
+	// Optional generic grouping key (empty = ungrouped). A subsession sets this
+	// to its parent session name.
+	Group         string `protobuf:"bytes,8,opt,name=group,proto3" json:"group,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1515,6 +1530,13 @@ func (x *CreateSessionRequest) GetBranch() string {
 func (x *CreateSessionRequest) GetVariant() string {
 	if x != nil {
 		return x.Variant
+	}
+	return ""
+}
+
+func (x *CreateSessionRequest) GetGroup() string {
+	if x != nil {
+		return x.Group
 	}
 	return ""
 }
@@ -2564,7 +2586,10 @@ type UpdateSettingsRequest struct {
 	SystemPrompt string `protobuf:"bytes,5,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
 	Locale       string `protobuf:"bytes,6,opt,name=locale,proto3" json:"locale,omitempty"`
 	// Selected reasoning variant id (empty clears it).
-	Variant       string `protobuf:"bytes,7,opt,name=variant,proto3" json:"variant,omitempty"`
+	Variant string `protobuf:"bytes,7,opt,name=variant,proto3" json:"variant,omitempty"`
+	// Generic grouping key (empty clears it). Included for completeness; the
+	// subsession flow sets it at creation time.
+	Group         *string `protobuf:"bytes,8,opt,name=group,proto3,oneof" json:"group,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2644,6 +2669,13 @@ func (x *UpdateSettingsRequest) GetLocale() string {
 func (x *UpdateSettingsRequest) GetVariant() string {
 	if x != nil {
 		return x.Variant
+	}
+	return ""
+}
+
+func (x *UpdateSettingsRequest) GetGroup() string {
+	if x != nil && x.Group != nil {
+		return *x.Group
 	}
 	return ""
 }
@@ -6250,7 +6282,7 @@ var File_agent_v1_agent_proto protoreflect.FileDescriptor
 
 const file_agent_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x14agent/v1/agent.proto\x12\bagent.v1\x1a\x1cgoogle/protobuf/struct.proto\"\xd7\x05\n" +
+	"\x14agent/v1/agent.proto\x12\bagent.v1\x1a\x1cgoogle/protobuf/struct.proto\"\xed\x05\n" +
 	"\aSession\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\x16\n" +
@@ -6279,7 +6311,8 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x14last_message_preview\x18\x15 \x01(\tR\x12lastMessagePreview\x12\x18\n" +
 	"\avariant\x18\x16 \x01(\tR\avariant\x12\x1f\n" +
 	"\vmessage_seq\x18\x17 \x01(\x05R\n" +
-	"messageSeq\"\x8b\x01\n" +
+	"messageSeq\x12\x14\n" +
+	"\x05group\x18\x18 \x01(\tR\x05group\"\x8b\x01\n" +
 	"\aMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12\x17\n" +
@@ -6381,7 +6414,7 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x04size\x18\x04 \x01(\x05R\x04size\"\x15\n" +
 	"\x13ListSessionsRequest\"E\n" +
 	"\x14ListSessionsResponse\x12-\n" +
-	"\bsessions\x18\x01 \x03(\v2\x11.agent.v1.SessionR\bsessions\"\xb0\x01\n" +
+	"\bsessions\x18\x01 \x03(\v2\x11.agent.v1.SessionR\bsessions\"\xc6\x01\n" +
 	"\x14CreateSessionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\x16\n" +
@@ -6389,7 +6422,8 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x03org\x18\x04 \x01(\tR\x03org\x12\x12\n" +
 	"\x04repo\x18\x05 \x01(\tR\x04repo\x12\x16\n" +
 	"\x06branch\x18\x06 \x01(\tR\x06branch\x12\x18\n" +
-	"\avariant\x18\a \x01(\tR\avariant\"J\n" +
+	"\avariant\x18\a \x01(\tR\avariant\x12\x14\n" +
+	"\x05group\x18\b \x01(\tR\x05group\"J\n" +
 	"\x15CreateSessionResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12!\n" +
 	"\fsession_name\x18\x02 \x01(\tR\vsessionName\"#\n" +
@@ -6448,7 +6482,7 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"S\n" +
 	"\x0fMailboxResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x120\n" +
-	"\amailbox\x18\x02 \x03(\v2\x16.agent.v1.MailboxEntryR\amailbox\"\xdc\x01\n" +
+	"\amailbox\x18\x02 \x03(\v2\x16.agent.v1.MailboxEntryR\amailbox\"\x81\x02\n" +
 	"\x15UpdateSettingsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\x16\n" +
@@ -6456,9 +6490,11 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\tmax_turns\x18\x04 \x01(\x05H\x00R\bmaxTurns\x88\x01\x01\x12#\n" +
 	"\rsystem_prompt\x18\x05 \x01(\tR\fsystemPrompt\x12\x16\n" +
 	"\x06locale\x18\x06 \x01(\tR\x06locale\x12\x18\n" +
-	"\avariant\x18\a \x01(\tR\avariantB\f\n" +
+	"\avariant\x18\a \x01(\tR\avariant\x12\x19\n" +
+	"\x05group\x18\b \x01(\tH\x01R\x05group\x88\x01\x01B\f\n" +
 	"\n" +
-	"_max_turns\"E\n" +
+	"_max_turnsB\b\n" +
+	"\x06_group\"E\n" +
 	"\x16UpdateSettingsResponse\x12+\n" +
 	"\asession\x18\x01 \x01(\v2\x11.agent.v1.SessionR\asession\"\"\n" +
 	"\x10InterruptRequest\x12\x0e\n" +
