@@ -709,26 +709,23 @@ func (x *Provider) GetUpdatedAt() string {
 	return ""
 }
 
-// Provider model entry. Text providers (api_type != vercel-compatible-gateway)
-// carry only text models: `context_limit` (> 0) is REQUIRED and drives
-// compaction budgets. The single `vercel-compatible-gateway` provider is a
-// SUPERSET — it may carry text models (context_limit > 0) AND multimodal
-// models used by tools (image/video/speech/transcription, context_limit 0).
+// Provider model entry. A model's `model_type` is its DECLARED capability
+// (text | image | video | speech | transcription | embedding | rerank):
 //
-// `model_type` is the model's KIND as advertised by the gateway `/config`
-// (`language` / `image` / `video` / `speech` / `transcription` / `embedding` /
-// `reranking` / `realtime`), normalized to a short tag (`text` for language).
-// It is DISPLAY/classification metadata only: which tool serves a given
-// multimodal model is still implied by the tool's config knob
-// (image_model / video_model / tts_model / asr_model). Empty when unknown.
+//   - text      -> context_limit (> 0) REQUIRED (drives compaction budgets)
+//   - non-text  -> context_limit MUST be 0 (not a chat model)
+//
+// Any provider api type may register models of any capability its protocol
+// serves (validated server-side against the capability matrix — see
+// ListProvidersCatalog). There is no gateway special-casing: several
+// providers of one api type may exist and a provider may mix modalities.
 type ProviderModel struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name         string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	ContextLimit int64                  `protobuf:"varint,3,opt,name=context_limit,json=contextLimit,proto3" json:"context_limit,omitempty"`
-	// Display-only kind: text | image | video | speech | transcription |
-	// embedding | reranking | realtime (normalized from the gateway /config
-	// modelType). Empty for a plain text provider or an unknown kind.
+	// Declared capability: text | image | video | speech | transcription |
+	// embedding | rerank. Empty is normalized to text on registration.
 	ModelType     string `protobuf:"bytes,4,opt,name=model_type,json=modelType,proto3" json:"model_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3024,9 +3021,14 @@ func (*ListProvidersCatalogRequest) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{47}
 }
 
+// The registration catalog: every provider api type the server accepts and
+// the model capabilities each can serve. Single source of truth for client
+// registration forms — clients fetch this instead of hardcoding the matrix
+// (with a bundled fallback copy for offline use).
 type ListProvidersCatalogResponse struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	Providers     map[string]*CatalogProvider `protobuf:"bytes,1,rep,name=providers,proto3" json:"providers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// api type id (e.g. "openai-compatible") -> its catalog entry.
+	ApiTypes      map[string]*ApiTypeCatalog `protobuf:"bytes,1,rep,name=api_types,json=apiTypes,proto3" json:"api_types,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3061,39 +3063,37 @@ func (*ListProvidersCatalogResponse) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{48}
 }
 
-func (x *ListProvidersCatalogResponse) GetProviders() map[string]*CatalogProvider {
+func (x *ListProvidersCatalogResponse) GetApiTypes() map[string]*ApiTypeCatalog {
 	if x != nil {
-		return x.Providers
+		return x.ApiTypes
 	}
 	return nil
 }
 
-type CatalogProvider struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Id            string                     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Api           string                     `protobuf:"bytes,3,opt,name=api,proto3" json:"api,omitempty"`
-	Npm           string                     `protobuf:"bytes,4,opt,name=npm,proto3" json:"npm,omitempty"`
-	Env           []string                   `protobuf:"bytes,5,rep,name=env,proto3" json:"env,omitempty"`
-	Models        map[string]*structpb.Value `protobuf:"bytes,6,rep,name=models,proto3" json:"models,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+// Catalog entry for one provider api type.
+type ApiTypeCatalog struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Capability tags a model of this api type may declare in `model_type`
+	// (text | image | video | speech | transcription | embedding | rerank).
+	Capabilities  []string `protobuf:"bytes,1,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CatalogProvider) Reset() {
-	*x = CatalogProvider{}
+func (x *ApiTypeCatalog) Reset() {
+	*x = ApiTypeCatalog{}
 	mi := &file_agent_v1_agent_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CatalogProvider) String() string {
+func (x *ApiTypeCatalog) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CatalogProvider) ProtoMessage() {}
+func (*ApiTypeCatalog) ProtoMessage() {}
 
-func (x *CatalogProvider) ProtoReflect() protoreflect.Message {
+func (x *ApiTypeCatalog) ProtoReflect() protoreflect.Message {
 	mi := &file_agent_v1_agent_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3105,49 +3105,14 @@ func (x *CatalogProvider) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CatalogProvider.ProtoReflect.Descriptor instead.
-func (*CatalogProvider) Descriptor() ([]byte, []int) {
+// Deprecated: Use ApiTypeCatalog.ProtoReflect.Descriptor instead.
+func (*ApiTypeCatalog) Descriptor() ([]byte, []int) {
 	return file_agent_v1_agent_proto_rawDescGZIP(), []int{49}
 }
 
-func (x *CatalogProvider) GetId() string {
+func (x *ApiTypeCatalog) GetCapabilities() []string {
 	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *CatalogProvider) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *CatalogProvider) GetApi() string {
-	if x != nil {
-		return x.Api
-	}
-	return ""
-}
-
-func (x *CatalogProvider) GetNpm() string {
-	if x != nil {
-		return x.Npm
-	}
-	return ""
-}
-
-func (x *CatalogProvider) GetEnv() []string {
-	if x != nil {
-		return x.Env
-	}
-	return nil
-}
-
-func (x *CatalogProvider) GetModels() map[string]*structpb.Value {
-	if x != nil {
-		return x.Models
+		return x.Capabilities
 	}
 	return nil
 }
@@ -3243,9 +3208,9 @@ func (x *RegisterProviderResponse) GetOk() bool {
 // DiscoverGatewayModels asks a `vercel-compatible-gateway` for the models it
 // serves (the gateway's `/config`) and classifies each by the advertised
 // `modelType`: language models get a real context limit, all other kinds
-// (image/video/speech/transcription/embedding/reranking) get 0. The gateway is
-// the only provider that can answer this, so a non-gateway api_type is
-// rejected.
+// (image/video/speech/transcription/embedding/reranking) get 0. Only the
+// gateway protocol exposes a discovery endpoint, so a non-gateway api_type is
+// rejected (openai-protocol providers have no equivalent on the agent).
 type DiscoverGatewayModelsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
@@ -6509,22 +6474,14 @@ const file_agent_v1_agent_proto_rawDesc = "" +
 	"\x14ListProvidersRequest\"I\n" +
 	"\x15ListProvidersResponse\x120\n" +
 	"\tproviders\x18\x01 \x03(\v2\x12.agent.v1.ProviderR\tproviders\"\x1d\n" +
-	"\x1bListProvidersCatalogRequest\"\xcc\x01\n" +
-	"\x1cListProvidersCatalogResponse\x12S\n" +
-	"\tproviders\x18\x01 \x03(\v25.agent.v1.ListProvidersCatalogResponse.ProvidersEntryR\tproviders\x1aW\n" +
-	"\x0eProvidersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.agent.v1.CatalogProviderR\x05value:\x028\x01\"\xfd\x01\n" +
-	"\x0fCatalogProvider\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
-	"\x03api\x18\x03 \x01(\tR\x03api\x12\x10\n" +
-	"\x03npm\x18\x04 \x01(\tR\x03npm\x12\x10\n" +
-	"\x03env\x18\x05 \x03(\tR\x03env\x12=\n" +
-	"\x06models\x18\x06 \x03(\v2%.agent.v1.CatalogProvider.ModelsEntryR\x06models\x1aQ\n" +
-	"\vModelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
-	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value:\x028\x01\"I\n" +
+	"\x1bListProvidersCatalogRequest\"\xc8\x01\n" +
+	"\x1cListProvidersCatalogResponse\x12Q\n" +
+	"\tapi_types\x18\x01 \x03(\v24.agent.v1.ListProvidersCatalogResponse.ApiTypesEntryR\bapiTypes\x1aU\n" +
+	"\rApiTypesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12.\n" +
+	"\x05value\x18\x02 \x01(\v2\x18.agent.v1.ApiTypeCatalogR\x05value:\x028\x01\"4\n" +
+	"\x0eApiTypeCatalog\x12\"\n" +
+	"\fcapabilities\x18\x01 \x03(\tR\fcapabilities\"I\n" +
 	"\x17RegisterProviderRequest\x12.\n" +
 	"\bprovider\x18\x01 \x01(\v2\x12.agent.v1.ProviderR\bprovider\"*\n" +
 	"\x18RegisterProviderResponse\x12\x0e\n" +
@@ -6777,7 +6734,7 @@ func file_agent_v1_agent_proto_rawDescGZIP() []byte {
 	return file_agent_v1_agent_proto_rawDescData
 }
 
-var file_agent_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 118)
+var file_agent_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 117)
 var file_agent_v1_agent_proto_goTypes = []any{
 	(*Session)(nil),                       // 0: agent.v1.Session
 	(*Message)(nil),                       // 1: agent.v1.Message
@@ -6828,7 +6785,7 @@ var file_agent_v1_agent_proto_goTypes = []any{
 	(*ListProvidersResponse)(nil),         // 46: agent.v1.ListProvidersResponse
 	(*ListProvidersCatalogRequest)(nil),   // 47: agent.v1.ListProvidersCatalogRequest
 	(*ListProvidersCatalogResponse)(nil),  // 48: agent.v1.ListProvidersCatalogResponse
-	(*CatalogProvider)(nil),               // 49: agent.v1.CatalogProvider
+	(*ApiTypeCatalog)(nil),                // 49: agent.v1.ApiTypeCatalog
 	(*RegisterProviderRequest)(nil),       // 50: agent.v1.RegisterProviderRequest
 	(*RegisterProviderResponse)(nil),      // 51: agent.v1.RegisterProviderResponse
 	(*DiscoverGatewayModelsRequest)(nil),  // 52: agent.v1.DiscoverGatewayModelsRequest
@@ -6894,22 +6851,21 @@ var file_agent_v1_agent_proto_goTypes = []any{
 	nil,                                   // 112: agent.v1.Provider.HeadersEntry
 	nil,                                   // 113: agent.v1.ToolConfig.ValuesEntry
 	nil,                                   // 114: agent.v1.PromptResponse.ParamsEntry
-	nil,                                   // 115: agent.v1.ListProvidersCatalogResponse.ProvidersEntry
-	nil,                                   // 116: agent.v1.CatalogProvider.ModelsEntry
-	nil,                                   // 117: agent.v1.DiscoverGatewayModelsRequest.HeadersEntry
-	(*structpb.Struct)(nil),               // 118: google.protobuf.Struct
-	(*structpb.Value)(nil),                // 119: google.protobuf.Value
+	nil,                                   // 115: agent.v1.ListProvidersCatalogResponse.ApiTypesEntry
+	nil,                                   // 116: agent.v1.DiscoverGatewayModelsRequest.HeadersEntry
+	(*structpb.Struct)(nil),               // 117: google.protobuf.Struct
+	(*structpb.Value)(nil),                // 118: google.protobuf.Value
 }
 var file_agent_v1_agent_proto_depIdxs = []int32{
 	2,   // 0: agent.v1.Message.parts:type_name -> agent.v1.Part
 	112, // 1: agent.v1.Provider.headers:type_name -> agent.v1.Provider.HeadersEntry
 	6,   // 2: agent.v1.Provider.models:type_name -> agent.v1.ProviderModel
-	118, // 3: agent.v1.ToolInfo.parameters:type_name -> google.protobuf.Struct
+	117, // 3: agent.v1.ToolInfo.parameters:type_name -> google.protobuf.Struct
 	8,   // 4: agent.v1.ToolInfo.config_fields:type_name -> agent.v1.ToolConfigField
-	119, // 5: agent.v1.ToolConfigField.default:type_name -> google.protobuf.Value
+	118, // 5: agent.v1.ToolConfigField.default:type_name -> google.protobuf.Value
 	113, // 6: agent.v1.ToolConfig.values:type_name -> agent.v1.ToolConfig.ValuesEntry
 	114, // 7: agent.v1.PromptResponse.params:type_name -> agent.v1.PromptResponse.ParamsEntry
-	118, // 8: agent.v1.WatchSessionResponse.params:type_name -> google.protobuf.Struct
+	117, // 8: agent.v1.WatchSessionResponse.params:type_name -> google.protobuf.Struct
 	0,   // 9: agent.v1.WatchSessionsResponse.upserts:type_name -> agent.v1.Session
 	0,   // 10: agent.v1.ListSessionsResponse.sessions:type_name -> agent.v1.Session
 	0,   // 11: agent.v1.GetSessionResponse.session:type_name -> agent.v1.Session
@@ -6919,135 +6875,133 @@ var file_agent_v1_agent_proto_depIdxs = []int32{
 	0,   // 15: agent.v1.RenameResponse.session:type_name -> agent.v1.Session
 	0,   // 16: agent.v1.SetModelResponse.session:type_name -> agent.v1.Session
 	0,   // 17: agent.v1.UndoResponse.session:type_name -> agent.v1.Session
-	118, // 18: agent.v1.StateResponse.state:type_name -> google.protobuf.Struct
+	117, // 18: agent.v1.StateResponse.state:type_name -> google.protobuf.Struct
 	3,   // 19: agent.v1.MailboxResponse.mailbox:type_name -> agent.v1.MailboxEntry
 	0,   // 20: agent.v1.UpdateSettingsResponse.session:type_name -> agent.v1.Session
 	5,   // 21: agent.v1.ListProvidersResponse.providers:type_name -> agent.v1.Provider
-	115, // 22: agent.v1.ListProvidersCatalogResponse.providers:type_name -> agent.v1.ListProvidersCatalogResponse.ProvidersEntry
-	116, // 23: agent.v1.CatalogProvider.models:type_name -> agent.v1.CatalogProvider.ModelsEntry
-	5,   // 24: agent.v1.RegisterProviderRequest.provider:type_name -> agent.v1.Provider
-	117, // 25: agent.v1.DiscoverGatewayModelsRequest.headers:type_name -> agent.v1.DiscoverGatewayModelsRequest.HeadersEntry
-	6,   // 26: agent.v1.DiscoverGatewayModelsResponse.models:type_name -> agent.v1.ProviderModel
-	60,  // 27: agent.v1.ListModelsResponse.models:type_name -> agent.v1.ModelInfo
-	61,  // 28: agent.v1.ModelInfo.variants:type_name -> agent.v1.ModelVariant
-	4,   // 29: agent.v1.ListPresetsResponse.presets:type_name -> agent.v1.Preset
-	4,   // 30: agent.v1.UpsertPresetRequest.preset:type_name -> agent.v1.Preset
-	7,   // 31: agent.v1.ListToolsResponse.tools:type_name -> agent.v1.ToolInfo
-	9,   // 32: agent.v1.GetToolConfigResponse.config:type_name -> agent.v1.ToolConfig
-	118, // 33: agent.v1.SetToolConfigRequest.config:type_name -> google.protobuf.Struct
-	119, // 34: agent.v1.SetExtensionConfigRequest.value:type_name -> google.protobuf.Value
-	15,  // 35: agent.v1.UploadFileRequest.file:type_name -> agent.v1.FileRef
-	118, // 36: agent.v1.GetAgentConfigResponse.config:type_name -> google.protobuf.Struct
-	94,  // 37: agent.v1.ListTenantsResponse.tenants:type_name -> agent.v1.Tenant
-	94,  // 38: agent.v1.CreateTenantResponse.tenant:type_name -> agent.v1.Tenant
-	94,  // 39: agent.v1.UpdateTenantResponse.tenant:type_name -> agent.v1.Tenant
-	95,  // 40: agent.v1.IssueTenantTokenResponse.token:type_name -> agent.v1.TenantToken
-	95,  // 41: agent.v1.ListTenantTokensResponse.tokens:type_name -> agent.v1.TenantToken
-	95,  // 42: agent.v1.RotateTenantTokenResponse.token:type_name -> agent.v1.TenantToken
-	119, // 43: agent.v1.ToolConfig.ValuesEntry.value:type_name -> google.protobuf.Value
-	49,  // 44: agent.v1.ListProvidersCatalogResponse.ProvidersEntry.value:type_name -> agent.v1.CatalogProvider
-	119, // 45: agent.v1.CatalogProvider.ModelsEntry.value:type_name -> google.protobuf.Value
-	92,  // 46: agent.v1.AgentService.Health:input_type -> agent.v1.HealthRequest
-	16,  // 47: agent.v1.AgentService.ListSessions:input_type -> agent.v1.ListSessionsRequest
-	18,  // 48: agent.v1.AgentService.CreateSession:input_type -> agent.v1.CreateSessionRequest
-	20,  // 49: agent.v1.AgentService.GetSession:input_type -> agent.v1.GetSessionRequest
-	22,  // 50: agent.v1.AgentService.DeleteSession:input_type -> agent.v1.DeleteSessionRequest
-	24,  // 51: agent.v1.AgentService.ListMessages:input_type -> agent.v1.ListMessagesRequest
-	26,  // 52: agent.v1.AgentService.Prompt:input_type -> agent.v1.PromptRequest
-	11,  // 53: agent.v1.AgentService.WatchSession:input_type -> agent.v1.WatchSessionRequest
-	13,  // 54: agent.v1.AgentService.WatchSessions:input_type -> agent.v1.WatchSessionsRequest
-	27,  // 55: agent.v1.AgentService.Fork:input_type -> agent.v1.ForkRequest
-	29,  // 56: agent.v1.AgentService.Rename:input_type -> agent.v1.RenameRequest
-	31,  // 57: agent.v1.AgentService.SetModel:input_type -> agent.v1.SetModelRequest
-	33,  // 58: agent.v1.AgentService.Undo:input_type -> agent.v1.UndoRequest
-	35,  // 59: agent.v1.AgentService.State:input_type -> agent.v1.StateRequest
-	37,  // 60: agent.v1.AgentService.Mailbox:input_type -> agent.v1.MailboxRequest
-	39,  // 61: agent.v1.AgentService.UpdateSettings:input_type -> agent.v1.UpdateSettingsRequest
-	41,  // 62: agent.v1.AgentService.Interrupt:input_type -> agent.v1.InterruptRequest
-	43,  // 63: agent.v1.AgentService.Compact:input_type -> agent.v1.CompactRequest
-	45,  // 64: agent.v1.AgentService.ListProviders:input_type -> agent.v1.ListProvidersRequest
-	47,  // 65: agent.v1.AgentService.ListProvidersCatalog:input_type -> agent.v1.ListProvidersCatalogRequest
-	50,  // 66: agent.v1.AgentService.RegisterProvider:input_type -> agent.v1.RegisterProviderRequest
-	52,  // 67: agent.v1.AgentService.DiscoverGatewayModels:input_type -> agent.v1.DiscoverGatewayModelsRequest
-	54,  // 68: agent.v1.AgentService.DeleteProvider:input_type -> agent.v1.DeleteProviderRequest
-	56,  // 69: agent.v1.AgentService.TestProvider:input_type -> agent.v1.TestProviderRequest
-	58,  // 70: agent.v1.AgentService.ListModels:input_type -> agent.v1.ListModelsRequest
-	62,  // 71: agent.v1.AgentService.ListPresets:input_type -> agent.v1.ListPresetsRequest
-	64,  // 72: agent.v1.AgentService.UpsertPreset:input_type -> agent.v1.UpsertPresetRequest
-	66,  // 73: agent.v1.AgentService.DeletePreset:input_type -> agent.v1.DeletePresetRequest
-	68,  // 74: agent.v1.AgentService.PreviewPreset:input_type -> agent.v1.PreviewPresetRequest
-	70,  // 75: agent.v1.AgentService.GetConfig:input_type -> agent.v1.GetConfigRequest
-	72,  // 76: agent.v1.AgentService.SetConfig:input_type -> agent.v1.SetConfigRequest
-	74,  // 77: agent.v1.AgentService.ListTools:input_type -> agent.v1.ListToolsRequest
-	76,  // 78: agent.v1.AgentService.GetToolConfig:input_type -> agent.v1.GetToolConfigRequest
-	78,  // 79: agent.v1.AgentService.SetToolConfig:input_type -> agent.v1.SetToolConfigRequest
-	80,  // 80: agent.v1.AgentService.SetExtensionConfig:input_type -> agent.v1.SetExtensionConfigRequest
-	82,  // 81: agent.v1.AgentService.UploadFile:input_type -> agent.v1.UploadFileRequest
-	84,  // 82: agent.v1.AgentService.IngestFile:input_type -> agent.v1.IngestFileRequest
-	86,  // 83: agent.v1.AgentService.GetFile:input_type -> agent.v1.GetFileRequest
-	88,  // 84: agent.v1.AgentService.GetFileMeta:input_type -> agent.v1.GetFileMetaRequest
-	90,  // 85: agent.v1.AgentService.GetAgentConfig:input_type -> agent.v1.GetAgentConfigRequest
-	96,  // 86: agent.v1.AdminService.ListTenants:input_type -> agent.v1.ListTenantsRequest
-	98,  // 87: agent.v1.AdminService.CreateTenant:input_type -> agent.v1.CreateTenantRequest
-	100, // 88: agent.v1.AdminService.UpdateTenant:input_type -> agent.v1.UpdateTenantRequest
-	102, // 89: agent.v1.AdminService.DeleteTenant:input_type -> agent.v1.DeleteTenantRequest
-	104, // 90: agent.v1.AdminService.IssueTenantToken:input_type -> agent.v1.IssueTenantTokenRequest
-	106, // 91: agent.v1.AdminService.ListTenantTokens:input_type -> agent.v1.ListTenantTokensRequest
-	108, // 92: agent.v1.AdminService.RevokeTenantToken:input_type -> agent.v1.RevokeTenantTokenRequest
-	110, // 93: agent.v1.AdminService.RotateTenantToken:input_type -> agent.v1.RotateTenantTokenRequest
-	93,  // 94: agent.v1.AgentService.Health:output_type -> agent.v1.HealthResponse
-	17,  // 95: agent.v1.AgentService.ListSessions:output_type -> agent.v1.ListSessionsResponse
-	19,  // 96: agent.v1.AgentService.CreateSession:output_type -> agent.v1.CreateSessionResponse
-	21,  // 97: agent.v1.AgentService.GetSession:output_type -> agent.v1.GetSessionResponse
-	23,  // 98: agent.v1.AgentService.DeleteSession:output_type -> agent.v1.DeleteSessionResponse
-	25,  // 99: agent.v1.AgentService.ListMessages:output_type -> agent.v1.ListMessagesResponse
-	10,  // 100: agent.v1.AgentService.Prompt:output_type -> agent.v1.PromptResponse
-	12,  // 101: agent.v1.AgentService.WatchSession:output_type -> agent.v1.WatchSessionResponse
-	14,  // 102: agent.v1.AgentService.WatchSessions:output_type -> agent.v1.WatchSessionsResponse
-	28,  // 103: agent.v1.AgentService.Fork:output_type -> agent.v1.ForkResponse
-	30,  // 104: agent.v1.AgentService.Rename:output_type -> agent.v1.RenameResponse
-	32,  // 105: agent.v1.AgentService.SetModel:output_type -> agent.v1.SetModelResponse
-	34,  // 106: agent.v1.AgentService.Undo:output_type -> agent.v1.UndoResponse
-	36,  // 107: agent.v1.AgentService.State:output_type -> agent.v1.StateResponse
-	38,  // 108: agent.v1.AgentService.Mailbox:output_type -> agent.v1.MailboxResponse
-	40,  // 109: agent.v1.AgentService.UpdateSettings:output_type -> agent.v1.UpdateSettingsResponse
-	42,  // 110: agent.v1.AgentService.Interrupt:output_type -> agent.v1.InterruptResponse
-	44,  // 111: agent.v1.AgentService.Compact:output_type -> agent.v1.CompactResponse
-	46,  // 112: agent.v1.AgentService.ListProviders:output_type -> agent.v1.ListProvidersResponse
-	48,  // 113: agent.v1.AgentService.ListProvidersCatalog:output_type -> agent.v1.ListProvidersCatalogResponse
-	51,  // 114: agent.v1.AgentService.RegisterProvider:output_type -> agent.v1.RegisterProviderResponse
-	53,  // 115: agent.v1.AgentService.DiscoverGatewayModels:output_type -> agent.v1.DiscoverGatewayModelsResponse
-	55,  // 116: agent.v1.AgentService.DeleteProvider:output_type -> agent.v1.DeleteProviderResponse
-	57,  // 117: agent.v1.AgentService.TestProvider:output_type -> agent.v1.TestProviderResponse
-	59,  // 118: agent.v1.AgentService.ListModels:output_type -> agent.v1.ListModelsResponse
-	63,  // 119: agent.v1.AgentService.ListPresets:output_type -> agent.v1.ListPresetsResponse
-	65,  // 120: agent.v1.AgentService.UpsertPreset:output_type -> agent.v1.UpsertPresetResponse
-	67,  // 121: agent.v1.AgentService.DeletePreset:output_type -> agent.v1.DeletePresetResponse
-	69,  // 122: agent.v1.AgentService.PreviewPreset:output_type -> agent.v1.PreviewPresetResponse
-	71,  // 123: agent.v1.AgentService.GetConfig:output_type -> agent.v1.GetConfigResponse
-	73,  // 124: agent.v1.AgentService.SetConfig:output_type -> agent.v1.SetConfigResponse
-	75,  // 125: agent.v1.AgentService.ListTools:output_type -> agent.v1.ListToolsResponse
-	77,  // 126: agent.v1.AgentService.GetToolConfig:output_type -> agent.v1.GetToolConfigResponse
-	79,  // 127: agent.v1.AgentService.SetToolConfig:output_type -> agent.v1.SetToolConfigResponse
-	81,  // 128: agent.v1.AgentService.SetExtensionConfig:output_type -> agent.v1.SetExtensionConfigResponse
-	83,  // 129: agent.v1.AgentService.UploadFile:output_type -> agent.v1.UploadFileResponse
-	85,  // 130: agent.v1.AgentService.IngestFile:output_type -> agent.v1.IngestFileResponse
-	87,  // 131: agent.v1.AgentService.GetFile:output_type -> agent.v1.GetFileResponse
-	89,  // 132: agent.v1.AgentService.GetFileMeta:output_type -> agent.v1.GetFileMetaResponse
-	91,  // 133: agent.v1.AgentService.GetAgentConfig:output_type -> agent.v1.GetAgentConfigResponse
-	97,  // 134: agent.v1.AdminService.ListTenants:output_type -> agent.v1.ListTenantsResponse
-	99,  // 135: agent.v1.AdminService.CreateTenant:output_type -> agent.v1.CreateTenantResponse
-	101, // 136: agent.v1.AdminService.UpdateTenant:output_type -> agent.v1.UpdateTenantResponse
-	103, // 137: agent.v1.AdminService.DeleteTenant:output_type -> agent.v1.DeleteTenantResponse
-	105, // 138: agent.v1.AdminService.IssueTenantToken:output_type -> agent.v1.IssueTenantTokenResponse
-	107, // 139: agent.v1.AdminService.ListTenantTokens:output_type -> agent.v1.ListTenantTokensResponse
-	109, // 140: agent.v1.AdminService.RevokeTenantToken:output_type -> agent.v1.RevokeTenantTokenResponse
-	111, // 141: agent.v1.AdminService.RotateTenantToken:output_type -> agent.v1.RotateTenantTokenResponse
-	94,  // [94:142] is the sub-list for method output_type
-	46,  // [46:94] is the sub-list for method input_type
-	46,  // [46:46] is the sub-list for extension type_name
-	46,  // [46:46] is the sub-list for extension extendee
-	0,   // [0:46] is the sub-list for field type_name
+	115, // 22: agent.v1.ListProvidersCatalogResponse.api_types:type_name -> agent.v1.ListProvidersCatalogResponse.ApiTypesEntry
+	5,   // 23: agent.v1.RegisterProviderRequest.provider:type_name -> agent.v1.Provider
+	116, // 24: agent.v1.DiscoverGatewayModelsRequest.headers:type_name -> agent.v1.DiscoverGatewayModelsRequest.HeadersEntry
+	6,   // 25: agent.v1.DiscoverGatewayModelsResponse.models:type_name -> agent.v1.ProviderModel
+	60,  // 26: agent.v1.ListModelsResponse.models:type_name -> agent.v1.ModelInfo
+	61,  // 27: agent.v1.ModelInfo.variants:type_name -> agent.v1.ModelVariant
+	4,   // 28: agent.v1.ListPresetsResponse.presets:type_name -> agent.v1.Preset
+	4,   // 29: agent.v1.UpsertPresetRequest.preset:type_name -> agent.v1.Preset
+	7,   // 30: agent.v1.ListToolsResponse.tools:type_name -> agent.v1.ToolInfo
+	9,   // 31: agent.v1.GetToolConfigResponse.config:type_name -> agent.v1.ToolConfig
+	117, // 32: agent.v1.SetToolConfigRequest.config:type_name -> google.protobuf.Struct
+	118, // 33: agent.v1.SetExtensionConfigRequest.value:type_name -> google.protobuf.Value
+	15,  // 34: agent.v1.UploadFileRequest.file:type_name -> agent.v1.FileRef
+	117, // 35: agent.v1.GetAgentConfigResponse.config:type_name -> google.protobuf.Struct
+	94,  // 36: agent.v1.ListTenantsResponse.tenants:type_name -> agent.v1.Tenant
+	94,  // 37: agent.v1.CreateTenantResponse.tenant:type_name -> agent.v1.Tenant
+	94,  // 38: agent.v1.UpdateTenantResponse.tenant:type_name -> agent.v1.Tenant
+	95,  // 39: agent.v1.IssueTenantTokenResponse.token:type_name -> agent.v1.TenantToken
+	95,  // 40: agent.v1.ListTenantTokensResponse.tokens:type_name -> agent.v1.TenantToken
+	95,  // 41: agent.v1.RotateTenantTokenResponse.token:type_name -> agent.v1.TenantToken
+	118, // 42: agent.v1.ToolConfig.ValuesEntry.value:type_name -> google.protobuf.Value
+	49,  // 43: agent.v1.ListProvidersCatalogResponse.ApiTypesEntry.value:type_name -> agent.v1.ApiTypeCatalog
+	92,  // 44: agent.v1.AgentService.Health:input_type -> agent.v1.HealthRequest
+	16,  // 45: agent.v1.AgentService.ListSessions:input_type -> agent.v1.ListSessionsRequest
+	18,  // 46: agent.v1.AgentService.CreateSession:input_type -> agent.v1.CreateSessionRequest
+	20,  // 47: agent.v1.AgentService.GetSession:input_type -> agent.v1.GetSessionRequest
+	22,  // 48: agent.v1.AgentService.DeleteSession:input_type -> agent.v1.DeleteSessionRequest
+	24,  // 49: agent.v1.AgentService.ListMessages:input_type -> agent.v1.ListMessagesRequest
+	26,  // 50: agent.v1.AgentService.Prompt:input_type -> agent.v1.PromptRequest
+	11,  // 51: agent.v1.AgentService.WatchSession:input_type -> agent.v1.WatchSessionRequest
+	13,  // 52: agent.v1.AgentService.WatchSessions:input_type -> agent.v1.WatchSessionsRequest
+	27,  // 53: agent.v1.AgentService.Fork:input_type -> agent.v1.ForkRequest
+	29,  // 54: agent.v1.AgentService.Rename:input_type -> agent.v1.RenameRequest
+	31,  // 55: agent.v1.AgentService.SetModel:input_type -> agent.v1.SetModelRequest
+	33,  // 56: agent.v1.AgentService.Undo:input_type -> agent.v1.UndoRequest
+	35,  // 57: agent.v1.AgentService.State:input_type -> agent.v1.StateRequest
+	37,  // 58: agent.v1.AgentService.Mailbox:input_type -> agent.v1.MailboxRequest
+	39,  // 59: agent.v1.AgentService.UpdateSettings:input_type -> agent.v1.UpdateSettingsRequest
+	41,  // 60: agent.v1.AgentService.Interrupt:input_type -> agent.v1.InterruptRequest
+	43,  // 61: agent.v1.AgentService.Compact:input_type -> agent.v1.CompactRequest
+	45,  // 62: agent.v1.AgentService.ListProviders:input_type -> agent.v1.ListProvidersRequest
+	47,  // 63: agent.v1.AgentService.ListProvidersCatalog:input_type -> agent.v1.ListProvidersCatalogRequest
+	50,  // 64: agent.v1.AgentService.RegisterProvider:input_type -> agent.v1.RegisterProviderRequest
+	52,  // 65: agent.v1.AgentService.DiscoverGatewayModels:input_type -> agent.v1.DiscoverGatewayModelsRequest
+	54,  // 66: agent.v1.AgentService.DeleteProvider:input_type -> agent.v1.DeleteProviderRequest
+	56,  // 67: agent.v1.AgentService.TestProvider:input_type -> agent.v1.TestProviderRequest
+	58,  // 68: agent.v1.AgentService.ListModels:input_type -> agent.v1.ListModelsRequest
+	62,  // 69: agent.v1.AgentService.ListPresets:input_type -> agent.v1.ListPresetsRequest
+	64,  // 70: agent.v1.AgentService.UpsertPreset:input_type -> agent.v1.UpsertPresetRequest
+	66,  // 71: agent.v1.AgentService.DeletePreset:input_type -> agent.v1.DeletePresetRequest
+	68,  // 72: agent.v1.AgentService.PreviewPreset:input_type -> agent.v1.PreviewPresetRequest
+	70,  // 73: agent.v1.AgentService.GetConfig:input_type -> agent.v1.GetConfigRequest
+	72,  // 74: agent.v1.AgentService.SetConfig:input_type -> agent.v1.SetConfigRequest
+	74,  // 75: agent.v1.AgentService.ListTools:input_type -> agent.v1.ListToolsRequest
+	76,  // 76: agent.v1.AgentService.GetToolConfig:input_type -> agent.v1.GetToolConfigRequest
+	78,  // 77: agent.v1.AgentService.SetToolConfig:input_type -> agent.v1.SetToolConfigRequest
+	80,  // 78: agent.v1.AgentService.SetExtensionConfig:input_type -> agent.v1.SetExtensionConfigRequest
+	82,  // 79: agent.v1.AgentService.UploadFile:input_type -> agent.v1.UploadFileRequest
+	84,  // 80: agent.v1.AgentService.IngestFile:input_type -> agent.v1.IngestFileRequest
+	86,  // 81: agent.v1.AgentService.GetFile:input_type -> agent.v1.GetFileRequest
+	88,  // 82: agent.v1.AgentService.GetFileMeta:input_type -> agent.v1.GetFileMetaRequest
+	90,  // 83: agent.v1.AgentService.GetAgentConfig:input_type -> agent.v1.GetAgentConfigRequest
+	96,  // 84: agent.v1.AdminService.ListTenants:input_type -> agent.v1.ListTenantsRequest
+	98,  // 85: agent.v1.AdminService.CreateTenant:input_type -> agent.v1.CreateTenantRequest
+	100, // 86: agent.v1.AdminService.UpdateTenant:input_type -> agent.v1.UpdateTenantRequest
+	102, // 87: agent.v1.AdminService.DeleteTenant:input_type -> agent.v1.DeleteTenantRequest
+	104, // 88: agent.v1.AdminService.IssueTenantToken:input_type -> agent.v1.IssueTenantTokenRequest
+	106, // 89: agent.v1.AdminService.ListTenantTokens:input_type -> agent.v1.ListTenantTokensRequest
+	108, // 90: agent.v1.AdminService.RevokeTenantToken:input_type -> agent.v1.RevokeTenantTokenRequest
+	110, // 91: agent.v1.AdminService.RotateTenantToken:input_type -> agent.v1.RotateTenantTokenRequest
+	93,  // 92: agent.v1.AgentService.Health:output_type -> agent.v1.HealthResponse
+	17,  // 93: agent.v1.AgentService.ListSessions:output_type -> agent.v1.ListSessionsResponse
+	19,  // 94: agent.v1.AgentService.CreateSession:output_type -> agent.v1.CreateSessionResponse
+	21,  // 95: agent.v1.AgentService.GetSession:output_type -> agent.v1.GetSessionResponse
+	23,  // 96: agent.v1.AgentService.DeleteSession:output_type -> agent.v1.DeleteSessionResponse
+	25,  // 97: agent.v1.AgentService.ListMessages:output_type -> agent.v1.ListMessagesResponse
+	10,  // 98: agent.v1.AgentService.Prompt:output_type -> agent.v1.PromptResponse
+	12,  // 99: agent.v1.AgentService.WatchSession:output_type -> agent.v1.WatchSessionResponse
+	14,  // 100: agent.v1.AgentService.WatchSessions:output_type -> agent.v1.WatchSessionsResponse
+	28,  // 101: agent.v1.AgentService.Fork:output_type -> agent.v1.ForkResponse
+	30,  // 102: agent.v1.AgentService.Rename:output_type -> agent.v1.RenameResponse
+	32,  // 103: agent.v1.AgentService.SetModel:output_type -> agent.v1.SetModelResponse
+	34,  // 104: agent.v1.AgentService.Undo:output_type -> agent.v1.UndoResponse
+	36,  // 105: agent.v1.AgentService.State:output_type -> agent.v1.StateResponse
+	38,  // 106: agent.v1.AgentService.Mailbox:output_type -> agent.v1.MailboxResponse
+	40,  // 107: agent.v1.AgentService.UpdateSettings:output_type -> agent.v1.UpdateSettingsResponse
+	42,  // 108: agent.v1.AgentService.Interrupt:output_type -> agent.v1.InterruptResponse
+	44,  // 109: agent.v1.AgentService.Compact:output_type -> agent.v1.CompactResponse
+	46,  // 110: agent.v1.AgentService.ListProviders:output_type -> agent.v1.ListProvidersResponse
+	48,  // 111: agent.v1.AgentService.ListProvidersCatalog:output_type -> agent.v1.ListProvidersCatalogResponse
+	51,  // 112: agent.v1.AgentService.RegisterProvider:output_type -> agent.v1.RegisterProviderResponse
+	53,  // 113: agent.v1.AgentService.DiscoverGatewayModels:output_type -> agent.v1.DiscoverGatewayModelsResponse
+	55,  // 114: agent.v1.AgentService.DeleteProvider:output_type -> agent.v1.DeleteProviderResponse
+	57,  // 115: agent.v1.AgentService.TestProvider:output_type -> agent.v1.TestProviderResponse
+	59,  // 116: agent.v1.AgentService.ListModels:output_type -> agent.v1.ListModelsResponse
+	63,  // 117: agent.v1.AgentService.ListPresets:output_type -> agent.v1.ListPresetsResponse
+	65,  // 118: agent.v1.AgentService.UpsertPreset:output_type -> agent.v1.UpsertPresetResponse
+	67,  // 119: agent.v1.AgentService.DeletePreset:output_type -> agent.v1.DeletePresetResponse
+	69,  // 120: agent.v1.AgentService.PreviewPreset:output_type -> agent.v1.PreviewPresetResponse
+	71,  // 121: agent.v1.AgentService.GetConfig:output_type -> agent.v1.GetConfigResponse
+	73,  // 122: agent.v1.AgentService.SetConfig:output_type -> agent.v1.SetConfigResponse
+	75,  // 123: agent.v1.AgentService.ListTools:output_type -> agent.v1.ListToolsResponse
+	77,  // 124: agent.v1.AgentService.GetToolConfig:output_type -> agent.v1.GetToolConfigResponse
+	79,  // 125: agent.v1.AgentService.SetToolConfig:output_type -> agent.v1.SetToolConfigResponse
+	81,  // 126: agent.v1.AgentService.SetExtensionConfig:output_type -> agent.v1.SetExtensionConfigResponse
+	83,  // 127: agent.v1.AgentService.UploadFile:output_type -> agent.v1.UploadFileResponse
+	85,  // 128: agent.v1.AgentService.IngestFile:output_type -> agent.v1.IngestFileResponse
+	87,  // 129: agent.v1.AgentService.GetFile:output_type -> agent.v1.GetFileResponse
+	89,  // 130: agent.v1.AgentService.GetFileMeta:output_type -> agent.v1.GetFileMetaResponse
+	91,  // 131: agent.v1.AgentService.GetAgentConfig:output_type -> agent.v1.GetAgentConfigResponse
+	97,  // 132: agent.v1.AdminService.ListTenants:output_type -> agent.v1.ListTenantsResponse
+	99,  // 133: agent.v1.AdminService.CreateTenant:output_type -> agent.v1.CreateTenantResponse
+	101, // 134: agent.v1.AdminService.UpdateTenant:output_type -> agent.v1.UpdateTenantResponse
+	103, // 135: agent.v1.AdminService.DeleteTenant:output_type -> agent.v1.DeleteTenantResponse
+	105, // 136: agent.v1.AdminService.IssueTenantToken:output_type -> agent.v1.IssueTenantTokenResponse
+	107, // 137: agent.v1.AdminService.ListTenantTokens:output_type -> agent.v1.ListTenantTokensResponse
+	109, // 138: agent.v1.AdminService.RevokeTenantToken:output_type -> agent.v1.RevokeTenantTokenResponse
+	111, // 139: agent.v1.AdminService.RotateTenantToken:output_type -> agent.v1.RotateTenantTokenResponse
+	92,  // [92:140] is the sub-list for method output_type
+	44,  // [44:92] is the sub-list for method input_type
+	44,  // [44:44] is the sub-list for extension type_name
+	44,  // [44:44] is the sub-list for extension extendee
+	0,   // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_agent_v1_agent_proto_init() }
@@ -7063,7 +7017,7 @@ func file_agent_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_agent_v1_agent_proto_rawDesc), len(file_agent_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   118,
+			NumMessages:   117,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
