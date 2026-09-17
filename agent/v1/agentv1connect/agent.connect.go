@@ -90,9 +90,6 @@ const (
 	// AgentServiceRegisterProviderProcedure is the fully-qualified name of the AgentService's
 	// RegisterProvider RPC.
 	AgentServiceRegisterProviderProcedure = "/agent.v1.AgentService/RegisterProvider"
-	// AgentServiceDiscoverGatewayModelsProcedure is the fully-qualified name of the AgentService's
-	// DiscoverGatewayModels RPC.
-	AgentServiceDiscoverGatewayModelsProcedure = "/agent.v1.AgentService/DiscoverGatewayModels"
 	// AgentServiceDeleteProviderProcedure is the fully-qualified name of the AgentService's
 	// DeleteProvider RPC.
 	AgentServiceDeleteProviderProcedure = "/agent.v1.AgentService/DeleteProvider"
@@ -189,7 +186,6 @@ type AgentServiceClient interface {
 	ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error)
 	ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error)
 	RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error)
-	DiscoverGatewayModels(context.Context, *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error)
 	DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error)
 	TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error)
 	ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error)
@@ -347,12 +343,6 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(agentServiceMethods.ByName("RegisterProvider")),
 			connect.WithClientOptions(opts...),
 		),
-		discoverGatewayModels: connect.NewClient[v1.DiscoverGatewayModelsRequest, v1.DiscoverGatewayModelsResponse](
-			httpClient,
-			baseURL+AgentServiceDiscoverGatewayModelsProcedure,
-			connect.WithSchema(agentServiceMethods.ByName("DiscoverGatewayModels")),
-			connect.WithClientOptions(opts...),
-		),
 		deleteProvider: connect.NewClient[v1.DeleteProviderRequest, v1.DeleteProviderResponse](
 			httpClient,
 			baseURL+AgentServiceDeleteProviderProcedure,
@@ -466,46 +456,45 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // agentServiceClient implements AgentServiceClient.
 type agentServiceClient struct {
-	health                *connect.Client[v1.HealthRequest, v1.HealthResponse]
-	listSessions          *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
-	createSession         *connect.Client[v1.CreateSessionRequest, v1.CreateSessionResponse]
-	getSession            *connect.Client[v1.GetSessionRequest, v1.GetSessionResponse]
-	deleteSession         *connect.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
-	listMessages          *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
-	prompt                *connect.Client[v1.PromptRequest, v1.PromptResponse]
-	watchSession          *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
-	watchSessions         *connect.Client[v1.WatchSessionsRequest, v1.WatchSessionsResponse]
-	fork                  *connect.Client[v1.ForkRequest, v1.ForkResponse]
-	rename                *connect.Client[v1.RenameRequest, v1.RenameResponse]
-	setModel              *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
-	undo                  *connect.Client[v1.UndoRequest, v1.UndoResponse]
-	state                 *connect.Client[v1.StateRequest, v1.StateResponse]
-	mailbox               *connect.Client[v1.MailboxRequest, v1.MailboxResponse]
-	updateSettings        *connect.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
-	interrupt             *connect.Client[v1.InterruptRequest, v1.InterruptResponse]
-	compact               *connect.Client[v1.CompactRequest, v1.CompactResponse]
-	listProviders         *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
-	listProvidersCatalog  *connect.Client[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse]
-	registerProvider      *connect.Client[v1.RegisterProviderRequest, v1.RegisterProviderResponse]
-	discoverGatewayModels *connect.Client[v1.DiscoverGatewayModelsRequest, v1.DiscoverGatewayModelsResponse]
-	deleteProvider        *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
-	testProvider          *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
-	listModels            *connect.Client[v1.ListModelsRequest, v1.ListModelsResponse]
-	listPresets           *connect.Client[v1.ListPresetsRequest, v1.ListPresetsResponse]
-	upsertPreset          *connect.Client[v1.UpsertPresetRequest, v1.UpsertPresetResponse]
-	deletePreset          *connect.Client[v1.DeletePresetRequest, v1.DeletePresetResponse]
-	previewPreset         *connect.Client[v1.PreviewPresetRequest, v1.PreviewPresetResponse]
-	getConfig             *connect.Client[v1.GetConfigRequest, v1.GetConfigResponse]
-	setConfig             *connect.Client[v1.SetConfigRequest, v1.SetConfigResponse]
-	listTools             *connect.Client[v1.ListToolsRequest, v1.ListToolsResponse]
-	getToolConfig         *connect.Client[v1.GetToolConfigRequest, v1.GetToolConfigResponse]
-	setToolConfig         *connect.Client[v1.SetToolConfigRequest, v1.SetToolConfigResponse]
-	setExtensionConfig    *connect.Client[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse]
-	uploadFile            *connect.Client[v1.UploadFileRequest, v1.UploadFileResponse]
-	ingestFile            *connect.Client[v1.IngestFileRequest, v1.IngestFileResponse]
-	getFile               *connect.Client[v1.GetFileRequest, v1.GetFileResponse]
-	getFileMeta           *connect.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
-	getAgentConfig        *connect.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
+	health               *connect.Client[v1.HealthRequest, v1.HealthResponse]
+	listSessions         *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
+	createSession        *connect.Client[v1.CreateSessionRequest, v1.CreateSessionResponse]
+	getSession           *connect.Client[v1.GetSessionRequest, v1.GetSessionResponse]
+	deleteSession        *connect.Client[v1.DeleteSessionRequest, v1.DeleteSessionResponse]
+	listMessages         *connect.Client[v1.ListMessagesRequest, v1.ListMessagesResponse]
+	prompt               *connect.Client[v1.PromptRequest, v1.PromptResponse]
+	watchSession         *connect.Client[v1.WatchSessionRequest, v1.WatchSessionResponse]
+	watchSessions        *connect.Client[v1.WatchSessionsRequest, v1.WatchSessionsResponse]
+	fork                 *connect.Client[v1.ForkRequest, v1.ForkResponse]
+	rename               *connect.Client[v1.RenameRequest, v1.RenameResponse]
+	setModel             *connect.Client[v1.SetModelRequest, v1.SetModelResponse]
+	undo                 *connect.Client[v1.UndoRequest, v1.UndoResponse]
+	state                *connect.Client[v1.StateRequest, v1.StateResponse]
+	mailbox              *connect.Client[v1.MailboxRequest, v1.MailboxResponse]
+	updateSettings       *connect.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
+	interrupt            *connect.Client[v1.InterruptRequest, v1.InterruptResponse]
+	compact              *connect.Client[v1.CompactRequest, v1.CompactResponse]
+	listProviders        *connect.Client[v1.ListProvidersRequest, v1.ListProvidersResponse]
+	listProvidersCatalog *connect.Client[v1.ListProvidersCatalogRequest, v1.ListProvidersCatalogResponse]
+	registerProvider     *connect.Client[v1.RegisterProviderRequest, v1.RegisterProviderResponse]
+	deleteProvider       *connect.Client[v1.DeleteProviderRequest, v1.DeleteProviderResponse]
+	testProvider         *connect.Client[v1.TestProviderRequest, v1.TestProviderResponse]
+	listModels           *connect.Client[v1.ListModelsRequest, v1.ListModelsResponse]
+	listPresets          *connect.Client[v1.ListPresetsRequest, v1.ListPresetsResponse]
+	upsertPreset         *connect.Client[v1.UpsertPresetRequest, v1.UpsertPresetResponse]
+	deletePreset         *connect.Client[v1.DeletePresetRequest, v1.DeletePresetResponse]
+	previewPreset        *connect.Client[v1.PreviewPresetRequest, v1.PreviewPresetResponse]
+	getConfig            *connect.Client[v1.GetConfigRequest, v1.GetConfigResponse]
+	setConfig            *connect.Client[v1.SetConfigRequest, v1.SetConfigResponse]
+	listTools            *connect.Client[v1.ListToolsRequest, v1.ListToolsResponse]
+	getToolConfig        *connect.Client[v1.GetToolConfigRequest, v1.GetToolConfigResponse]
+	setToolConfig        *connect.Client[v1.SetToolConfigRequest, v1.SetToolConfigResponse]
+	setExtensionConfig   *connect.Client[v1.SetExtensionConfigRequest, v1.SetExtensionConfigResponse]
+	uploadFile           *connect.Client[v1.UploadFileRequest, v1.UploadFileResponse]
+	ingestFile           *connect.Client[v1.IngestFileRequest, v1.IngestFileResponse]
+	getFile              *connect.Client[v1.GetFileRequest, v1.GetFileResponse]
+	getFileMeta          *connect.Client[v1.GetFileMetaRequest, v1.GetFileMetaResponse]
+	getAgentConfig       *connect.Client[v1.GetAgentConfigRequest, v1.GetAgentConfigResponse]
 }
 
 // Health calls agent.v1.AgentService.Health.
@@ -611,11 +600,6 @@ func (c *agentServiceClient) ListProvidersCatalog(ctx context.Context, req *conn
 // RegisterProvider calls agent.v1.AgentService.RegisterProvider.
 func (c *agentServiceClient) RegisterProvider(ctx context.Context, req *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error) {
 	return c.registerProvider.CallUnary(ctx, req)
-}
-
-// DiscoverGatewayModels calls agent.v1.AgentService.DiscoverGatewayModels.
-func (c *agentServiceClient) DiscoverGatewayModels(ctx context.Context, req *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error) {
-	return c.discoverGatewayModels.CallUnary(ctx, req)
 }
 
 // DeleteProvider calls agent.v1.AgentService.DeleteProvider.
@@ -731,7 +715,6 @@ type AgentServiceHandler interface {
 	ListProviders(context.Context, *connect.Request[v1.ListProvidersRequest]) (*connect.Response[v1.ListProvidersResponse], error)
 	ListProvidersCatalog(context.Context, *connect.Request[v1.ListProvidersCatalogRequest]) (*connect.Response[v1.ListProvidersCatalogResponse], error)
 	RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error)
-	DiscoverGatewayModels(context.Context, *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error)
 	DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error)
 	TestProvider(context.Context, *connect.Request[v1.TestProviderRequest]) (*connect.Response[v1.TestProviderResponse], error)
 	ListModels(context.Context, *connect.Request[v1.ListModelsRequest]) (*connect.Response[v1.ListModelsResponse], error)
@@ -883,12 +866,6 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		AgentServiceRegisterProviderProcedure,
 		svc.RegisterProvider,
 		connect.WithSchema(agentServiceMethods.ByName("RegisterProvider")),
-		connect.WithHandlerOptions(opts...),
-	)
-	agentServiceDiscoverGatewayModelsHandler := connect.NewUnaryHandler(
-		AgentServiceDiscoverGatewayModelsProcedure,
-		svc.DiscoverGatewayModels,
-		connect.WithSchema(agentServiceMethods.ByName("DiscoverGatewayModels")),
 		connect.WithHandlerOptions(opts...),
 	)
 	agentServiceDeleteProviderHandler := connect.NewUnaryHandler(
@@ -1043,8 +1020,6 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceListProvidersCatalogHandler.ServeHTTP(w, r)
 		case AgentServiceRegisterProviderProcedure:
 			agentServiceRegisterProviderHandler.ServeHTTP(w, r)
-		case AgentServiceDiscoverGatewayModelsProcedure:
-			agentServiceDiscoverGatewayModelsHandler.ServeHTTP(w, r)
 		case AgentServiceDeleteProviderProcedure:
 			agentServiceDeleteProviderHandler.ServeHTTP(w, r)
 		case AgentServiceTestProviderProcedure:
@@ -1172,10 +1147,6 @@ func (UnimplementedAgentServiceHandler) ListProvidersCatalog(context.Context, *c
 
 func (UnimplementedAgentServiceHandler) RegisterProvider(context.Context, *connect.Request[v1.RegisterProviderRequest]) (*connect.Response[v1.RegisterProviderResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.RegisterProvider is not implemented"))
-}
-
-func (UnimplementedAgentServiceHandler) DiscoverGatewayModels(context.Context, *connect.Request[v1.DiscoverGatewayModelsRequest]) (*connect.Response[v1.DiscoverGatewayModelsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("agent.v1.AgentService.DiscoverGatewayModels is not implemented"))
 }
 
 func (UnimplementedAgentServiceHandler) DeleteProvider(context.Context, *connect.Request[v1.DeleteProviderRequest]) (*connect.Response[v1.DeleteProviderResponse], error) {
