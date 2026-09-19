@@ -197,11 +197,14 @@ message WatchSessionsResponse {
   bool snapshot = 3;
 }
 
-// A file reference (attachment).
+// A file reference (attachment). `mime` is NOT carried: the agent DERIVES the
+// content type from the bytes at ingest time (magic-byte sniff + media probe)
+// and resolves it from the stored record, so a caller can neither mislabel a
+// file nor need a content-type library of its own.
 message FileRef {
   string code = 1;
   string name = 2;
-  string mime = 3;
+  reserved 3; // was `string mime` — removed; server-derived (see IngestFileResponse.mime)
   int32 size = 4;
 }
 
@@ -415,15 +418,20 @@ message SetExtensionConfigRequest { string ext_id = 1; string name = 2; google.p
 message SetExtensionConfigResponse { bool ok = 1; }
 
 message UploadFileRequest { FileRef file = 1; string data = 2; }
-message UploadFileResponse { bool ok = 1; string code = 2; }
+// `mime` is the SERVER-DERIVED content type of the stored file (see
+// IngestFileResponse); the caller never supplies one.
+message UploadFileResponse { bool ok = 1; string code = 2; string mime = 3; }
 
 message IngestFileRequest {
   string code = 1; // optional; empty => server mints one
   bytes data = 2;
   string name = 3;
-  string mime = 4;
+  reserved 4; // was `string mime` — removed; server-derived (see response)
 }
-message IngestFileResponse { bool ok = 1; string code = 2; }
+// `mime` is the content type the agent DERIVED from the bytes (magic-byte
+// sniff, with an ffprobe refinement for media). It is authoritative: clients
+// render from it rather than asserting their own guess.
+message IngestFileResponse { bool ok = 1; string code = 2; string mime = 3; }
 
 message GetFileRequest { string code = 1; }
 message GetFileResponse { bytes data = 1; string name = 2; string mime = 3; }
