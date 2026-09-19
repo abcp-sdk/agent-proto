@@ -429,7 +429,36 @@ message GetFileRequest { string code = 1; }
 message GetFileResponse { bytes data = 1; string name = 2; string mime = 3; }
 
 message GetFileMetaRequest { string code = 1; }
-message GetFileMetaResponse { string name = 1; string mime = 2; int32 size = 3; }
+// File metadata: identity + server-derived media facts. The optional media
+// fields are populated (asynchronously, best-effort) by the agent's media
+// probe when the mime is a supported image/video/audio type; they are absent
+// (field presence unset) for files that are not media or were probed before
+// the feature existed. `thumb_code` is itself a canonical file code (the
+// thumbnail is a content-addressed file), so a client fetches it through the
+// normal GetFile/GetFileStream path.
+message GetFileMetaResponse {
+  string name = 1;
+  string mime = 2;
+  int32 size = 3;
+  optional int32 width = 4;
+  optional int32 height = 5;
+  optional int64 duration_ms = 6;
+  optional string thumb_code = 7;
+  optional string thumbhash = 8;
+}
+
+// GetFileStream streams a file's bytes in order (chunk by chunk). It is the
+// streaming counterpart of GetFile: small files still round-trip fine, while
+// large media is delivered progressively so a client can start rendering
+// before the whole object has arrived. Without a `Range` API this is a
+// forward-only stream (no seek); `offset` is the byte offset of `data` in the
+// file and `total` its full length, so a client can compute progress.
+message FileChunk {
+  bytes data = 1;
+  uint64 offset = 2;
+  uint64 total = 3;
+  bool last = 4;
+}
 
 
 
@@ -479,6 +508,7 @@ service AgentService {
   rpc IngestFile(IngestFileRequest) returns (IngestFileResponse);
   rpc GetFile(GetFileRequest) returns (GetFileResponse);
   rpc GetFileMeta(GetFileMetaRequest) returns (GetFileMetaResponse);
+  rpc GetFileStream(GetFileRequest) returns (stream FileChunk);
   rpc GetAgentConfig(GetAgentConfigRequest) returns (GetAgentConfigResponse);
 }
 
