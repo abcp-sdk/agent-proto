@@ -476,9 +476,23 @@ message GetAgentConfigResponse { google.protobuf.Struct config = 1; }
 message HealthRequest {}
 message HealthResponse { bool ok = 1; string name = 2; }
 
+// GetIdentity returns the caller's resolved identity (from its bearer token).
+// The webui uses it to show a human username instead of the (fixed, same-
+// origin) URL. A tenant token can only ever resolve its own identity; an admin
+// token resolves role=admin with empty tenant fields.
+message GetIdentityRequest {}
+message GetIdentityResponse {
+  string tenant = 1;
+  // Human-readable tenant name (defaults to the id when unset).
+  string tenant_name = 2;
+  // "tenant" | "admin".
+  string role = 3;
+}
+
 // AgentService is the session-backend API.
 service AgentService {
   rpc Health(HealthRequest) returns (HealthResponse);
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
   rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
   rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
