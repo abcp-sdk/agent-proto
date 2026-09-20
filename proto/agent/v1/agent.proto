@@ -106,13 +106,13 @@ message Provider {
   repeated ProviderModel models = 6;
   string updated_at = 7;
   // The single modality this provider serves (text | image | video | speech |
-  // transcription | embedding | rerank | realtime). New field (no renumber).
+  // transcription | embedding | rerank | realtime).
   string capability = 8;
 }
 
 // Provider model entry. All of a provider's models share the provider's
-// `capability`; `model_type` mirrors it (kept for wire compatibility and for
-// clients that read the model directly).
+// `capability`; `model_type` mirrors it so a client can read the modality
+// directly from the model.
 //
 //   - text      -> context_limit (> 0) REQUIRED (drives compaction budgets)
 //   - non-text  -> context_limit MUST be 0 (not a chat model)
@@ -204,8 +204,7 @@ message WatchSessionsResponse {
 message FileRef {
   string code = 1;
   string name = 2;
-  reserved 3; // was `string mime` — removed; server-derived (see IngestFileResponse.mime)
-  int32 size = 4;
+  int32 size = 3;
 }
 
 message ListSessionsRequest {}
@@ -300,16 +299,9 @@ message UpdateSettingsRequest {
   string id = 1;
   string model = 2;
   string preset = 3;
-  // Optional: omitted means "inherit (preset / default)"; an explicit value
-  // must be > 0 (0 is rejected).
-  optional int32 max_turns = 4;
-  string system_prompt = 5;
-  string locale = 6;
+  string locale = 4;
   // Selected reasoning variant id (empty clears it).
-  string variant = 7;
-  // Generic grouping key (empty clears it). Included for completeness; the
-  // subsession flow sets it at creation time.
-  optional string group = 8;
+  string variant = 5;
 }
 message UpdateSettingsResponse { Session session = 1; }
 
@@ -426,7 +418,6 @@ message IngestFileRequest {
   string code = 1; // optional; empty => server mints one
   bytes data = 2;
   string name = 3;
-  reserved 4; // was `string mime` — removed; server-derived (see response)
 }
 // `mime` is the content type the agent DERIVED from the bytes (magic-byte
 // sniff, with an ffprobe refinement for media). It is authoritative: clients
