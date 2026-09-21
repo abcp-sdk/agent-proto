@@ -292,8 +292,23 @@ message UndoResponse { Session session = 1; }
 message StateRequest { string id = 1; }
 message StateResponse { google.protobuf.Struct state = 1; }
 
-message MailboxRequest { string id = 1; }
-message MailboxResponse { bool ok = 1; repeated MailboxEntry mailbox = 2; }
+// Mailbox listing is NEWEST-FIRST and paged BACKWARD (older) for infinite
+// scroll: the client holds the newest page and passes the oldest entry it has
+// as `before` to fetch the next-older page.
+message MailboxRequest {
+  string id = 1;
+  // Max entries to return (0 => server default).
+  int32 limit = 2;
+  // Backward cursor (exclusive): return entries OLDER than this entry id.
+  // Empty => the newest page.
+  string before = 3;
+}
+message MailboxResponse {
+  bool ok = 1;
+  repeated MailboxEntry mailbox = 2;
+  // True when more (older) entries exist beyond this page.
+  bool has_more = 3;
+}
 
 message UpdateSettingsRequest {
   string id = 1;
