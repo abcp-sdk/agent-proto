@@ -3,12 +3,18 @@
 # agent-proto: generate the agent.v1 Connect/Protobuf SDKs and distribute them
 # to the five language SDK repos under abcp-sdk/.
 #
-#   agent-proto            = SOURCE ONLY (.proto + this script + buf config)
+#   agent-proto            = SOURCE ONLY (.proto + this script + buf config + templates)
 #   agent-sdk-go           = Go SDK    (generated pb.go + connect.go + aliases)
 #   agent-sdk-typescript   = TS SDK    (generated agent_pb.ts)
 #   agent-sdk-dart         = Dart SDK  (generated pb.dart + connect.client.dart)
-#   agent-sdk-kotlin       = Kotlin SDK(generated com/agent/v1/**)
+#   agent-sdk-kotlin       = Kotlin SDK(generated com/agent/v1/** + build files)
 #   agent-sdk-swift        = Swift SDK (generated agent.pb.swift + agent.connect.swift)
+#
+# Kotlin is special: buf only emits `src/main/java/com/agent/v1/**`. Its hand-
+# maintained Gradle build is NOT generated, so it is distributed from
+# templates/kotlin/ (build.gradle.kts, settings.gradle.kts, .gitignore) and
+# checked alongside the generated tree. That keeps a fresh agent-sdk-kotlin
+# building without the JDK/Kotlin-plugin gotchas its DEVELOP.md documents.
 #
 # The agent server's schema package (agent/packages/schema) re-exports the TS
 # generation from @abcp/agent-sdk, so it needs no separate copy.
@@ -21,6 +27,9 @@
 #   ./scripts/sync-agent-sdks.sh --check    # generate to staging, diff, no writes
 #   ./scripts/sync-agent-sdks.sh --only go,ts
 #   ./scripts/sync-agent-sdks.sh --from <path>   # one-shot: import a proto revision
+#
+# --check also diffs the Kotlin build files (templates/kotlin/) into
+# agent-sdk-kotlin, so a stale build file shows up as drift, not just stale code.
 # =============================================================================
 set -euo pipefail
 
@@ -36,6 +45,10 @@ SDK_TS="$ROOT/agent-sdk-typescript"
 SDK_DART="$ROOT/agent-sdk-dart"
 SDK_KOTLIN="$ROOT/agent-sdk-kotlin"
 SDK_SWIFT="$ROOT/agent-sdk-swift"
+
+# Hand-maintained (not generated) files that live here but ship inside the Kotlin
+# SDK; templates/kotlin/ is the source of truth for the SDK's Gradle build.
+KOTLIN_TEMPLATE="$AGENT_PROTO/templates/kotlin"
 
 # The agent-sdk-go Go module path the generated Go code must target.
 GO_PKG_OLD="github.com/abcp-sdk/agent-proto/agent/v1;agentv1"
@@ -125,6 +138,12 @@ fi
 DIRTY=0
 dist() { # dist <label> <src> <dst>
   local label="$1" src="$2" dst="$3"
+  # A distribution source can be absent when --only excludes its language (the
+  # buf plugin output for it is then empty). Skip rather than treat as a delete.
+  if [ ! -d "$src" ]; then
+    echo "-- $label: skipped (no source: $src)"
+    return 0
+  fi
   if [ "$CHECK" = 1 ]; then
     if [ -d "$dst" ] && diff -r "$src" "$dst" >/dev/null 2>&1; then
       echo "-- $label: OK (in sync)"
@@ -136,6 +155,31 @@ dist() { # dist <label> <src> <dst>
   else
     mkdir -p "$dst"
     copy_contents "$src" "$dst"
+    echo "-- $label -> $dst"
+  fi
+}
+
+dist_file() { # dist_file <label> <src-file> <dst-file>  (single hand-maintained file)
+  local label="$1" src="$2" dst="$3"
+  if [ ! -f "$src" ]; then
+    echo "-- $label: skipped (no source: $src)"
+    return 0
+  fi
+  if [ "$CHECK" = 1 ]; then
+    if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
+      echo "-- $label: OK (in sync)"
+    else
+      DIRTY=1
+      echo "-- $label: DIFFERS"
+      if [ -f "$dst" ]; then
+        diff -u "$dst" "$src" 2>&1 | head -20
+      else
+        echo "   (missing $dst)"
+      fi
+    fi
+  else
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
     echo "-- $label -> $dst"
   fi
 }
@@ -152,6 +196,11 @@ fi
 if want kotlin; then
   # buf emits java_package com.agent.v1; the repo expects src/main/java/com/agent/v1
   dist "kotlin" "$GEN/kotlin/com/agent/v1" "$SDK_KOTLIN/src/main/java/com/agent/v1"
+  # The Gradle build is hand-maintained, not generated: distribute + check it
+  # from templates/kotlin/ so a fresh SDK repo has a working build.
+  for f in build.gradle.kts settings.gradle.kts .gitignore; do
+    dist_file "kotlin build: $f" "$KOTLIN_TEMPLATE/$f" "$SDK_KOTLIN/$f"
+  done
 fi
 if want swift; then
   dist "swift" "$GEN/swift/agent/v1" "$SDK_SWIFT/Sources/AgentSDK/agent/v1"

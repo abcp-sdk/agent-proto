@@ -10,6 +10,7 @@ agent-proto/
 ├── buf.yaml                     # buf module + lint/breaking config
 ├── buf.gen.sync.yaml            # what the sync script runs (native output -> staging)
 ├── buf.gen.preview.yaml         # same plugins, for `buf generate` inspection
+├── templates/kotlin/            # hand-maintained Kotlin build files (not generated)
 └── scripts/sync-agent-sdks.sh   # generate + distribute + --check
 ```
 
@@ -19,7 +20,7 @@ agent-proto/
 ./scripts/sync-agent-sdks.sh              # generate + write into the SDK repos
 ./scripts/sync-agent-sdks.sh --check      # diff staging vs repos, no writes
 ./scripts/sync-agent-sdks.sh --only go,ts # subset
-./scripts/sync-agent-sdks.sh --src /path/to/agent.proto   # re-home a new proto revision
+./scripts/sync-agent-sdks.sh --from /path/to/agent.proto  # re-home a new proto revision
 ```
 
 Distribution targets:
@@ -33,6 +34,13 @@ Distribution targets:
 | Swift  | `agent-sdk-swift`      | `Sources/AgentSDK/agent/v1/*` |
 | TS (server) | `agent`            | `packages/schema/src/gen/agent/v1/agent_pb.ts` |
 
+Kotlin is the one SDK whose **build files** are also distributed from here: `buf`
+only emits `src/main/java/com/agent/v1/**`, so `templates/kotlin/`
+(`build.gradle.kts`, `settings.gradle.kts`, `.gitignore`) is the source of truth
+for the rest of the repo. The sync script copies it into `agent-sdk-kotlin` and
+`--check` diffs it, so a fresh checkout builds without the JDK/Kotlin-plugin
+gotchas recorded in `agent-sdk-kotlin/DEVELOP.md`.
+
 The Go output is generated with the canonical `agent-proto` go_package and then
 rewritten to `github.com/abcp-sdk/agent-sdk-go/agent/v1` — a deterministic,
 self-contained step, so upstream proto generation stays unchanged.
@@ -42,3 +50,5 @@ self-contained step, so upstream proto generation stays unchanged.
 1. Edit `proto/agent/v1/agent.proto` (or import a revision with `--from <path>`).
 2. Run `./scripts/sync-agent-sdks.sh`.
 3. Commit `proto/` here, then commit the regenerated files in each SDK repo.
+   (A Kotlin build-file change is made in `templates/kotlin/` here and shipped by
+   the same script.)
