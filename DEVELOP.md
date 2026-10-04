@@ -68,6 +68,20 @@ JDK 25 → JVM 17 bytecode).
 
 - `buf generate` uses **remote** BSR plugins and needs egress to `buf.build`;
   the in-cluster artifact mirror does not proxy it.
+- **Installing `buf` in a sandbox: do NOT hit github.com.** Direct
+  `github.com` release downloads stall/fail in-cluster. Fetch the release
+  through artifact's generic **`netcache`** mount instead
+  (`/artifacts/netcache/<host>/<path>` proxies an arbitrary upstream URL):
+
+  ```sh
+  A=http://artifact.worker.svc.cluster.local
+  curl -fsSL -o /tmp/buf.tgz \
+    "$A/artifacts/netcache/github.com/bufbuild/buf/releases/download/v1.73.0/buf-Linux-x86_64.tar.gz"
+  tar -xzf /tmp/buf.tgz -C /tmp && /tmp/buf/bin/buf --version
+  ```
+
+  (The BSR plugin calls `buf generate` makes go straight to `buf.build`, which
+  *is* reachable from a sandbox; only the binary download needs the mirror.)
 - Gradle in a sandbox reaches Maven through the pull-through mirror
   (`http://artifact.worker.svc.cluster.local/artifacts/maven/`). Gradle rejects
   plain-HTTP repositories unless you opt in, so use an `~/.gradle/init.gradle`
